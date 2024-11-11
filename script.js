@@ -44,8 +44,7 @@ function dragEnter(e) {
     e.preventDefault();
 }
 
-function dragLeave() {
-}
+function dragLeave() {}
 
 function dragDrop() {
     colorBeingReplaced = this.dataset.type;
@@ -55,14 +54,13 @@ function dragDrop() {
 }
 
 function dragEnd() {
-    // Valid move?
+    // Check if move is valid
     const validMoves = [
         squareIdBeingDragged - 1, 
         squareIdBeingDragged + 1,
         squareIdBeingDragged - width,
         squareIdBeingDragged + width
     ];
-
     const validMove = validMoves.includes(squareIdBeingReplaced);
 
     if (squareIdBeingReplaced && validMove) {
@@ -77,44 +75,72 @@ function dragEnd() {
 
 // Check for matches
 function checkForMatches() {
-    // Horizontal Check
-    for (let i = 0; i < width * width; i++) {
+    checkRowForThree();
+    checkColumnForThree();
+    moveDown();
+}
+
+// Check rows for matches of three
+function checkRowForThree() {
+    for (let i = 0; i < width * width - 2; i++) {
+        if (i % width > width - 3) continue; // Skip last two columns
+
         const row = [i, i + 1, i + 2];
         const decidedType = squares[i].dataset.type;
         const isBlank = decidedType === '';
 
-        if (row.every(index => squares[index] && squares[index].dataset.type === decidedType && !isBlank)) {
+        if (row.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
             score += row.length;
             row.forEach(index => squares[index].dataset.type = '');
             scoreDisplay.textContent = score;
         }
     }
+}
 
-    // Vertical Check (similar to horizontal)
+// Check columns for matches of three
+function checkColumnForThree() {
     for (let i = 0; i < width * (width - 2); i++) {
         const column = [i, i + width, i + width * 2];
         const decidedType = squares[i].dataset.type;
         const isBlank = decidedType === '';
 
-        if (column.every(index => squares[index] && squares[index].dataset.type === decidedType && !isBlank)) {
+        if (column.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
             score += column.length;
             column.forEach(index => squares[index].dataset.type = '');
             scoreDisplay.textContent = score;
         }
     }
-
-    moveDown();
 }
 
-// Drop new squares
+// Move pieces down to fill empty spaces
 function moveDown() {
-    for (let i = 0; i < width * (width - 1); i++) {
-        if (squares[i + width].dataset.type === '') {
+    for (let i = width * (width - 1) - 1; i >= 0; i--) {
+        if (squares[i + width] && squares[i + width].dataset.type === '') {
             squares[i + width].dataset.type = squares[i].dataset.type;
+            squares[i].dataset.type = '';
+        }
+    }
+
+    // Fill the top row with new pieces if needed
+    for (let i = 0; i < width; i++) {
+        if (squares[i].dataset.type === '') {
             squares[i].dataset.type = colors[Math.floor(Math.random() * colors.length)];
         }
     }
+
+    setTimeout(checkForMatches, 100); // Check for new matches after filling
 }
 
-// Initialize game
+// Restart Game Button
+document.getElementById('reset-button').addEventListener('click', resetGame);
+
+function resetGame() {
+    score = 0;
+    scoreDisplay.textContent = score;
+    gameBoard.innerHTML = ''; // Clear the board
+    squares = [];
+    createBoard(); // Re-create the game board
+}
+
+// Initialize the game board
 createBoard();
