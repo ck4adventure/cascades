@@ -6,18 +6,45 @@ let score = 0;
 let squares = [];
 const colors = ['1', '2', '3', '4', '5']; // Represent different colors
 
+
 // Initialize game board
 function createBoard() {
     for (let i = 0; i < width * width; i++) {
         const square = document.createElement('div');
         square.classList.add('tile');
-        square.dataset.type = colors[Math.floor(Math.random() * colors.length)];
+
+        let randomColor;
+        do {
+            randomColor = colors[Math.floor(Math.random() * colors.length)];
+            square.dataset.type = randomColor;
+        } while (checkForInitialMatch(i, randomColor)); // Prevent initial matches
+
         square.setAttribute('draggable', true);
         square.id = i;
         gameBoard.appendChild(square);
         squares.push(square);
     }
 }
+
+// Utility function to check for initial matches as we create the board
+function checkForInitialMatch(index, color) {
+    // Prevents 3-in-a-row horizontally
+    if (index % width > 1 && 
+        squares[index - 1].dataset.type === color && 
+        squares[index - 2].dataset.type === color) {
+        return true;
+    }
+
+    // Prevents 3-in-a-row vertically
+    if (index >= 2 * width && 
+        squares[index - width].dataset.type === color && 
+        squares[index - 2 * width].dataset.type === color) {
+        return true;
+    }
+
+    return false;
+}
+
 
 // Drag and Drop Events
 let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
