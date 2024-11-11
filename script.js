@@ -6,7 +6,6 @@ let score = 0;
 let squares = [];
 const colors = ['1', '2', '3', '4', '5']; // Represent different colors
 
-
 // Initialize game board
 function createBoard() {
     for (let i = 0; i < width * width; i++) {
@@ -26,25 +25,16 @@ function createBoard() {
     }
 }
 
-// Utility function to check for initial matches as we create the board
+// Prevent initial matches
 function checkForInitialMatch(index, color) {
-    // Prevents 3-in-a-row horizontally
-    if (index % width > 1 && 
-        squares[index - 1].dataset.type === color && 
-        squares[index - 2].dataset.type === color) {
+    if (index % width > 1 && squares[index - 1].dataset.type === color && squares[index - 2].dataset.type === color) {
         return true;
     }
-
-    // Prevents 3-in-a-row vertically
-    if (index >= 2 * width && 
-        squares[index - width].dataset.type === color && 
-        squares[index - 2 * width].dataset.type === color) {
+    if (index >= 2 * width && squares[index - width].dataset.type === color && squares[index - 2 * width].dataset.type === color) {
         return true;
     }
-
     return false;
 }
-
 
 // Drag and Drop Events
 let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
@@ -81,23 +71,23 @@ function dragDrop() {
 }
 
 function dragEnd() {
-    // Check if move is valid
     const validMoves = [
         squareIdBeingDragged - 1, 
         squareIdBeingDragged + 1,
         squareIdBeingDragged - width,
         squareIdBeingDragged + width
     ];
+
     const validMove = validMoves.includes(squareIdBeingReplaced);
 
     if (squareIdBeingReplaced && validMove) {
         squareIdBeingReplaced = null;
-    } else if (squareIdBeingReplaced && !validMove) {
+        checkForMatches();
+    } else {
+        // Revert the swap if not valid
         squares[squareIdBeingReplaced].dataset.type = colorBeingReplaced;
         squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
-    } else squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
-
-    checkForMatches();
+    }
 }
 
 // Check for matches
