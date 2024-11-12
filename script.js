@@ -1,7 +1,16 @@
+// Global Variables
+let width = 8; // Width of the board (can adjust based on requirements)
+let squares = [];
+let colors = ['red', 'green', 'blue', 'yellow', 'purple']; // Color options for tiles
+let score = 0;
+let isPlayerBlocked = false;
+const scoreDisplay = document.getElementById('score'); // Score display element
+const gameBoard = document.getElementById('game-board'); // Game board element
+
 // Handle matches by removing tiles, shifting pieces, and checking for new matches
 function handleMatches() {
     let matchesFound;
-    
+
     do {
         matchesFound = checkExtendedRowMatch() || checkExtendedColumnMatch();
         if (matchesFound) {
@@ -114,11 +123,21 @@ document.getElementById('reset-button').addEventListener('click', resetGame);
 function resetGame() {
     score = 0;
     scoreDisplay.textContent = score;
-    gameBoard.innerHTML = '';
+    gameBoard.innerHTML = ''; // Clear the board display
     squares = [];
     isPlayerBlocked = false;
-    createBoard();
+    createBoard(); // Reinitialize the board with new tiles
 }
 
 // Initialize the game board
-createBoard();
+function createBoard() {
+    for (let i = 0; i < width * width; i++) {
+        const square = document.createElement('div');
+        square.classList.add('tile');
+        square.dataset.type = colors[Math.floor(Math.random() * colors.length)]; // Assign random color
+        gameBoard.appendChild(square);
+        squares.push(square);
+    }
+
+    handleMatches(); // Check for initial matches upon board setup
+}
