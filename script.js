@@ -1,12 +1,12 @@
-// Game settings
 const width = 8;
 const gameBoard = document.getElementById('game-board');
 const scoreDisplay = document.getElementById('score');
 let score = 0;
 let squares = [];
-const colors = ['1', '2', '3', '4', '5']; // Represent different colors
+const colors = ['1', '2', '3', '4', '5'];
+let isPlayerBlocked = false; // To block player actions during animations
 
-// Initialize game board
+// Initialize game board with no matches
 function createBoard() {
     for (let i = 0; i < width * width; i++) {
         const square = document.createElement('div');
@@ -49,6 +49,7 @@ squares.forEach(square => {
 });
 
 function dragStart() {
+    if (isPlayerBlocked) return;
     colorBeingDragged = this.dataset.type;
     squareIdBeingDragged = parseInt(this.id);
 }
@@ -64,6 +65,7 @@ function dragEnter(e) {
 function dragLeave() {}
 
 function dragDrop() {
+    if (isPlayerBlocked) return;
     colorBeingReplaced = this.dataset.type;
     squareIdBeingReplaced = parseInt(this.id);
     squares[squareIdBeingDragged].dataset.type = colorBeingReplaced;
@@ -71,6 +73,8 @@ function dragDrop() {
 }
 
 function dragEnd() {
+    if (isPlayerBlocked) return;
+
     const validMoves = [
         squareIdBeingDragged - 1, 
         squareIdBeingDragged + 1,
@@ -81,26 +85,46 @@ function dragEnd() {
     const validMove = validMoves.includes(squareIdBeingReplaced);
 
     if (squareIdBeingReplaced && validMove) {
-        squareIdBeingReplaced = null;
-        checkForMatches();
+        // Only accept the move if it creates a match
+        if (checkForMatchAfterMove()) {
+            isPlayerBlocked = true; // Block additional moves while board updates
+            squareIdBeingReplaced = null;
+            handleMatches();
+        } else {
+            // Revert swap if no match
+            squares[squareIdBeingReplaced].dataset.type = colorBeingReplaced;
+            squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
+        }
     } else {
-        // Revert the swap if not valid
+        // Revert swap if invalid move
         squares[squareIdBeingReplaced].dataset.type = colorBeingReplaced;
         squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
     }
 }
 
-// Check for matches
-function checkForMatches() {
-    checkRowForThree();
-    checkColumnForThree();
-    moveDown();
+// Check if move creates a match
+function checkForMatchAfterMove() {
+    return checkRowForThree() || checkColumnForThree();
+}
+
+// Handle matches by removing tiles, shifting pieces, and checking for new matches
+function handleMatches() {
+    let matchesFound = checkRowForThree() || checkColumnForThree();
+    if (matchesFound) {
+        setTimeout(() => {
+            moveDown();
+            handleMatches(); // Recursively handle cascades
+        }, 300);
+    } else {
+        isPlayerBlocked = false; // Unlock player actions once no matches are left
+    }
 }
 
 // Check rows for matches of three
 function checkRowForThree() {
+    let matchFound = false;
     for (let i = 0; i < width * width - 2; i++) {
-        if (i % width > width - 3) continue; // Skip last two columns
+        if (i % width > width - 3) continue;
 
         const row = [i, i + 1, i + 2];
         const decidedType = squares[i].dataset.type;
@@ -108,14 +132,17 @@ function checkRowForThree() {
 
         if (row.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
             score += row.length;
-            row.forEach(index => squares[index].dataset.type = '');
-            scoreDisplay.textContent = score;
+            row.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+            matchFound = true;
         }
     }
+    scoreDisplay.textContent = score;
+    return matchFound;
 }
 
 // Check columns for matches of three
 function checkColumnForThree() {
+    let matchFound = false;
     for (let i = 0; i < width * (width - 2); i++) {
         const column = [i, i + width, i + width * 2];
         const decidedType = squares[i].dataset.type;
@@ -123,10 +150,12 @@ function checkColumnForThree() {
 
         if (column.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
             score += column.length;
-            column.forEach(index => squares[index].dataset.type = '');
-            scoreDisplay.textContent = score;
+            column.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+            matchFound = true;
         }
     }
+    scoreDisplay.textContent = score;
+    return matchFound;
 }
 
 // Move pieces down to fill empty spaces
@@ -144,8 +173,6 @@ function moveDown() {
             squares[i].dataset.type = colors[Math.floor(Math.random() * colors.length)];
         }
     }
-
-    setTimeout(checkForMatches, 100); // Check for new matches after filling
 }
 
 // Restart Game Button
@@ -156,6 +183,7 @@ function resetGame() {
     scoreDisplay.textContent = score;
     gameBoard.innerHTML = ''; // Clear the board
     squares = [];
+    isPlayerBlocked = false; // Unlock player moves
     createBoard(); // Re-create the game board
 }
 
