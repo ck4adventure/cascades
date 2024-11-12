@@ -1,8 +1,8 @@
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-		border: 1px solid pink;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	border: 1px solid pink;
 }
 
 body {
@@ -26,5 +26,26 @@ body {
 }
 
 #game-board {
-	background-color: lavender;
+	background-color: black;
+	display: grid;
+	grid-template-columns: repeat(8, 1fr);
+	grid-template-rows: repeat(8, 1fr);
+	gap: 2px;
+	margin-top: 20px;
 }
+
+.tile {
+	width: 100%;
+	border-radius: 5px;
+	padding-top: 100%;
+}
+
+/* data type will be used to convey different colored blocks */
+.tile[data-type="1"] { background-color: red;}
+.tile[data-type="2"] { background-color: orange;}
+.tile[data-type="3"] { background-color: yellow;}
+.tile[data-type="4"] { background-color: green;}
+.tile[data-type="5"] { background-color: blue;}
+.tile[data-type="6"] { background-color: purple;}
+.tile[data-type="7"] { background-color: pink;}
+
