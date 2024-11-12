@@ -90,18 +90,15 @@ function dragEnd() {
     const validMove = validMoves.includes(squareIdBeingReplaced);
 
     if (squareIdBeingReplaced && validMove) {
-        // Only allow the swap if it results in a match
         if (checkForMatchAfterMove()) {
-            isPlayerBlocked = true; // Block player while handling matches
+            isPlayerBlocked = true;
             squareIdBeingReplaced = null;
-            handleMatches(); // Process matches and update board
+            handleMatches();
         } else {
-            // Revert if no match was made
             squares[squareIdBeingReplaced].dataset.type = colorBeingReplaced;
             squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
         }
     } else {
-        // Revert if not a valid move
         squares[squareIdBeingReplaced].dataset.type = colorBeingReplaced;
         squares[squareIdBeingDragged].dataset.type = colorBeingDragged;
     }
@@ -109,35 +106,50 @@ function dragEnd() {
 
 // Check if move creates a match
 function checkForMatchAfterMove() {
-    return checkRowForThree() || checkColumnForThree();
+    return checkExtendedRowMatch() || checkExtendedColumnMatch();
 }
 
 // Handle matches by removing tiles, shifting pieces, and checking for new matches
 function handleMatches() {
-    let matchesFound = checkRowForThree() || checkColumnForThree();
+    let matchesFound = checkExtendedRowMatch() || checkExtendedColumnMatch();
     if (matchesFound) {
         setTimeout(() => {
             moveDown();
             handleMatches(); // Recursively handle cascades
         }, 300);
     } else {
-        isPlayerBlocked = false; // Unlock player actions once no matches remain
+        isPlayerBlocked = false;
     }
 }
 
-// Check rows for matches of three
-function checkRowForThree() {
+// Extended row match checking to detect matches as far left and right as possible
+function checkExtendedRowMatch() {
     let matchFound = false;
-    for (let i = 0; i < width * width - 2; i++) {
-        if (i % width > width - 3) continue;
 
-        const row = [i, i + 1, i + 2];
-        const decidedType = squares[i].dataset.type;
-        const isBlank = decidedType === '';
+    for (let i = 0; i < width * width; i++) {
+        const type = squares[i].dataset.type;
+        if (type === '') continue;
 
-        if (row.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
-            score += row.length;
-            row.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+        let matchIndices = [i];
+
+        // Check left
+        let left = i - 1;
+        while (left >= Math.floor(i / width) * width && squares[left].dataset.type === type) {
+            matchIndices.push(left);
+            left--;
+        }
+
+        // Check right
+        let right = i + 1;
+        while (right < Math.floor(i / width) * width + width && squares[right].dataset.type === type) {
+            matchIndices.push(right);
+            right++;
+        }
+
+        // If we have a match of 3 or more
+        if (matchIndices.length >= 3) {
+            matchIndices.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+            score += matchIndices.length;
             matchFound = true;
         }
     }
@@ -145,17 +157,34 @@ function checkRowForThree() {
     return matchFound;
 }
 
-// Check columns for matches of three
-function checkColumnForThree() {
+// Extended column match checking to detect matches as far up and down as possible
+function checkExtendedColumnMatch() {
     let matchFound = false;
-    for (let i = 0; i < width * (width - 2); i++) {
-        const column = [i, i + width, i + width * 2];
-        const decidedType = squares[i].dataset.type;
-        const isBlank = decidedType === '';
 
-        if (column.every(index => squares[index].dataset.type === decidedType && !isBlank)) {
-            score += column.length;
-            column.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+    for (let i = 0; i < width * (width - 1); i++) {
+        const type = squares[i].dataset.type;
+        if (type === '') continue;
+
+        let matchIndices = [i];
+
+        // Check upwards
+        let up = i - width;
+        while (up >= 0 && squares[up].dataset.type === type) {
+            matchIndices.push(up);
+            up -= width;
+        }
+
+        // Check downwards
+        let down = i + width;
+        while (down < width * width && squares[down].dataset.type === type) {
+            matchIndices.push(down);
+            down += width;
+        }
+
+        // If we have a match of 3 or more
+        if (matchIndices.length >= 3) {
+            matchIndices.forEach(index => squares[index].dataset.type = ''); // Clear matched pieces
+            score += matchIndices.length;
             matchFound = true;
         }
     }
@@ -166,13 +195,13 @@ function checkColumnForThree() {
 // Move pieces down to fill empty spaces
 function moveDown() {
     for (let i = width * (width - 1) - 1; i >= 0; i--) {
-        if (squares[i + width] && squares[i + width].dataset.type === '') {
-            squares[i + width].dataset.type = squares[i].dataset.type;
-            squares[i].dataset.type = '';
+        if (squares[i].dataset.type === '' && squares[i - width] && squares[i - width].dataset.type !== '') {
+            squares[i].dataset.type = squares[i - width].dataset.type;
+            squares[i - width].dataset.type = '';
         }
     }
 
-    // Fill the top row with new pieces if needed
+    // Refill the top row with new pieces if needed
     for (let i = 0; i < width; i++) {
         if (squares[i].dataset.type === '') {
             squares[i].dataset.type = colors[Math.floor(Math.random() * colors.length)];
@@ -186,10 +215,10 @@ document.getElementById('reset-button').addEventListener('click', resetGame);
 function resetGame() {
     score = 0;
     scoreDisplay.textContent = score;
-    gameBoard.innerHTML = ''; // Clear the board
+    gameBoard.innerHTML = '';
     squares = [];
-    isPlayerBlocked = false; // Unlock player moves
-    createBoard(); // Re-create the game board
+    isPlayerBlocked = false;
+    createBoard();
 }
 
 // Initialize the game board
