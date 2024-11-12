@@ -46,6 +46,8 @@ body {
 .tile[data-type="3"] { background-color: green; }
 .tile[data-type="4"] { background-color: blue; }
 .tile[data-type="5"] { background-color: purple; }
+.tile[data-type="6"] { background-color: lightgray; }
+.tile[data-type="7"] { background-color: yellow; }
 
 .tile:hover {
     transform: scale(1.05);
