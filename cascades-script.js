@@ -1,6 +1,7 @@
 // 1. create a board with random tiles
+// 2. be able to switch tiles
 const width = 8;
-const height = 8;
+const height = 10;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
 let colors = ['1','2','3','4','5','6','7']
@@ -19,6 +20,9 @@ function createBoard() {
 		square.id = i;
 		// add to it the tile class
 		square.classList.add('tile');
+
+		// allow it to be draggable
+		square.setAttribute('draggable', true);
 		// pick a random color/dataset-type by indexing into the colors array
 		let randomColor;
 		do {
@@ -38,13 +42,13 @@ function  isThreeInARow(index, colorType){
 	// horizontal check can be simplified to only check what is to the left of it
 	// allows skipping the first two indexes on the left for each row
 	// index modulo width is a way to see where it sits within the row
-	if (index % width > 1 && squares[index-2].dataset.type === colorType && squares[index-1].dataset.type === colorType) {
+	if (index % width > 1 && squares[index - 2].dataset.type === colorType && squares[index - 1].dataset.type === colorType) {
 		return true;
 	}
 
 	// vertical check can be simplified to only check above it
 	// allows skipping the first two rows of indexes for each column
-	if (index >= 2 * width && squares[index-width].dataset.type === colorType && squares[index - 2 * width].dataset.type === colorType) {
+	if (index >= 2 * width && squares[index - width].dataset.type === colorType && squares[index - 2 * width].dataset.type === colorType) {
 		return true;
 	}
 

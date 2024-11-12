@@ -2,7 +2,7 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	border: 1px solid pink;
+	/* border: 1px solid pink; */
 }
 
 body {
@@ -10,8 +10,12 @@ body {
 	justify-content: center;
 	align-items: center;
 	min-height: 100vh;
-	background-color: aquamarine;
+	background-color: lightcyan;
 	font-family: Arial, Helvetica, sans-serif;
+}
+
+h1 {
+	text-align: center;
 }
 
 #game-container {
@@ -26,7 +30,7 @@ body {
 }
 
 #game-board {
-	background-color: black;
+	background-color: white;
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
 	grid-template-rows: repeat(8, 1fr);
