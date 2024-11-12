@@ -20,8 +20,12 @@ function createBoard() {
 		// add to it the tile class
 		square.classList.add('tile');
 		// pick a random color/dataset-type by indexing into the colors array
-		let randomColor = colors[Math.floor(Math.random() * colors.length)]
-		square.dataset.type = randomColor;
+		let randomColor;
+		do {
+			randomColor = colors[Math.floor(Math.random() * colors.length)];
+			square.dataset.type = randomColor;
+		} while (isThreeInARow(i, randomColor));
+
 		gameBoard.appendChild(square);
 		squares.push(square);
 
@@ -33,10 +37,18 @@ function createBoard() {
 function  isThreeInARow(index, colorType){
 	// horizontal check can be simplified to only check what is to the left of it
 	// allows skipping the first two indexes on the left for each row
-	
+	// index modulo width is a way to see where it sits within the row
+	if (index % width > 1 && squares[index-2].dataset.type === colorType && squares[index-1].dataset.type === colorType) {
+		return true;
+	}
 
 	// vertical check can be simplified to only check above it
 	// allows skipping the first two rows of indexes for each column
+	if (index >= 2 * width && squares[index-width].dataset.type === colorType && squares[index - 2 * width].dataset.type === colorType) {
+		return true;
+	}
+
+	return false;
 }
 
 createBoard();
