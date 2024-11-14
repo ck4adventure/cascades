@@ -113,15 +113,17 @@ function dragDrop(e) {
 	squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 	squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
 	// handle matches
-	removeMatchingTiles(squareIdBeingReplaced, colorTypeBeingDragged)
-	removeMatchingTiles(squareIdBeingDragged, colorTypeBeingReplaced)
+	removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged)
+	removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced)
+	removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged)
+	removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced)
 }
 
 // removeMatchingTiles starts with squareIdBeingReplaced
 // it needs to look left, right, up, down to edges of board
 // all touching tiles to index of same type are taken off the board
 // and colorTypes need to shift downwards on the board
-function removeMatchingTiles(squareID, type) {
+function removeMatchingHorzTiles(squareID, type) {
 	// find left edge index
 	// find right edge index
 	// find top of col index
@@ -137,57 +139,75 @@ function removeMatchingTiles(squareID, type) {
 	// const draggedRow = Math.floor(squareIdBeingDragged / width);
 	// const draggedCol = squareIdBeingDragged % width;
 
-	let matchIDs = [squareID]
+	let horzMatchIDs = [squareID]
 	const leftMoves = squareID % width; // ie 11 % 8 = 3
 	const leftMostIndex = squareID - leftMoves; // 11 - 3 = 8
 	const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
 	const rightMostIndex = squareID + rightMoves; // 11 + 4 = 15
 
-
-	// Check left
-	let left = squareID - 1;
-	while (left >= leftMostIndex && squares[left].dataset.type === type) {
-		matchIDs.push(left);
-		left--;
-	}
-	// check right
-	let right = squareID + 1;
-	while (right <= rightMostIndex && squares[right].dataset.type === type) {
-		matchIDs.push(right);
-		right++;
-	}
-	if (matchIDs.length >= 3) {
-		matchIDs.forEach(id => squares[id].dataset.type = null)
-	}
-
-
-	// starting index is 11
-	// decrement one to 10, check if same type
-	// if yes, add to array and decrement again
-	// if no, break out
-
 	// left side starts with index and decrements until edge
 	// continue while colorType is same, adding ids to array
+	let left = squareID - 1;
+	while (left >= leftMostIndex && squares[left].dataset.type === type) {
+		horzMatchIDs.push(left);
+		left--;
+	}
 
 
 	// right side starts with index and increment to edge
 	// continue while colorType is same, adding ids to array
+	let right = squareID + 1;
+	while (right <= rightMostIndex && squares[right].dataset.type === type) {
+		horzMatchIDs.push(right);
+		right++;
+	}
+
+	if (horzMatchIDs.length >= 3) {
+		horzMatchIDs.forEach(id => squares[id].dataset.type = null)
+	}
+
+}
+
+function removeMatchingVertTiles(squareID, type) {
+	// find left edge index
+	// find right edge index
+	// find top of col index
+	// find bottom of col index
+
+	// board pattern
+	//  0  1  2  3  4  5  6  7
+	//  8  9 10 11 12 13 14 15
+	// 16 17 18 19 20 21 22 23
+	// 24 25 26 27 28 29 30 31 ...
+
 
 	// top side starts with index, decrementing by width until top
 	// continue while colorType is same, adding ids to array
-
+	let vertMatchIDs = [squareID];
+	let up = squareID - width;
+	while (up >= 0 && squares[up].dataset.type === type) {
+		vertMatchIDs.push(up);
+		up -= width;
+	}
 	// bottom side starts with index, incrementing by width until bottom row
 	// continue while colorType is same, adding ids to array
 
 	// once all touching ids that match the colorType are found
 	// delete them all at once, leaving gaps on the board 
 	// null square lets background color show through
+	let down = squareID + width;
+	while (down < squares.length && squares[down].dataset.type === type ) {
+		vertMatchIDs.push(down);
+		down += width;
+	}
 
-	//finally, start a shuffledown function to fill in the gaps
-	// always taking indexes that are in the column above 
 
+	if (vertMatchIDs.length >= 3) {
+		vertMatchIDs.forEach(id => squares[id].dataset.type = null)
+	}
 
 }
+
 
 
 
