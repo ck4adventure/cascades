@@ -89,8 +89,8 @@ function dragOver(e) {
 	const validMove = (
 		(squareIdBeingReplaced === squareIdBeingDragged - 1 && draggedCol > 0) || // Left
 		(squareIdBeingReplaced === squareIdBeingDragged + 1 && draggedCol < width - 1) || // Right
-		(squareIdBeingReplaced === squareIdBeingDragged - width && draggedRow > 0) || // Up
-		(squareIdBeingReplaced === squareIdBeingDragged + width && draggedRow < width - 1) // Down
+		(squareIdBeingReplaced === squareIdBeingDragged - width && draggedRow >= 0) || // Up
+		(squareIdBeingReplaced === squareIdBeingDragged + width && draggedRow < height - 1) // Down
 	);
 	if (validMove) {
 		e.preventDefault();
@@ -104,26 +104,71 @@ function dragEnd(e) {
 	// in case we have moved over many different squares, recapture id
 	colorTypeBeingReplaced = this.dataset.type;
 	squareIdBeingReplaced = parseInt(this.id);
+	// at this point we have to check if there is an actual match
+	// reversing the pieces if not
 }
 
 // drop fires only if valid drop target under mouse on end
 function dragDrop(e) {
 	squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 	squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+	// handle matches
+	removeMatchingTiles(squareIdBeingReplaced, colorTypeBeingDragged)
+	removeMatchingTiles(squareIdBeingDragged, colorTypeBeingReplaced)
 }
 
 // removeMatchingTiles starts with squareIdBeingReplaced
 // it needs to look left, right, up, down to edges of board
 // all touching tiles to index of same type are taken off the board
 // and colorTypes need to shift downwards on the board
-function removeMatchingTiles() {
+function removeMatchingTiles(squareID, type) {
 	// find left edge index
 	// find right edge index
 	// find top of col index
 	// find bottom of col index
 
+	// board pattern
+	//  0  1  2  3  4  5  6  7
+	//  8  9 10 11 12 13 14 15
+	// 16 17 18 19 20 21 22 23
+	// 24 25 26 27 28 29 30 31 ...
+
+	// Calculate the row and column of the dragged square
+	// const draggedRow = Math.floor(squareIdBeingDragged / width);
+	// const draggedCol = squareIdBeingDragged % width;
+
+	let matchIDs = [squareID]
+	const leftMoves = squareID % width; // ie 11 % 8 = 3
+	const leftMostIndex = squareID - leftMoves; // 11 - 3 = 8
+	const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
+	const rightMostIndex = squareID + rightMoves; // 11 + 4 = 15
+
+
+	// Check left
+	let left = squareID - 1;
+	while (left >= leftMostIndex && squares[left].dataset.type === type) {
+		matchIDs.push(left);
+		left--;
+	}
+	// check right
+	let right = squareID + 1;
+	while (right <= rightMostIndex && squares[right].dataset.type === type) {
+		matchIDs.push(right);
+		right++;
+	}
+	if (matchIDs.length >= 3) {
+		matchIDs.forEach(id => squares[id].dataset.type = null)
+	}
+
+
+	// starting index is 11
+	// decrement one to 10, check if same type
+	// if yes, add to array and decrement again
+	// if no, break out
+
 	// left side starts with index and decrements until edge
 	// continue while colorType is same, adding ids to array
+
 
 	// right side starts with index and increment to edge
 	// continue while colorType is same, adding ids to array
@@ -137,7 +182,7 @@ function removeMatchingTiles() {
 	// once all touching ids that match the colorType are found
 	// delete them all at once, leaving gaps on the board 
 	// null square lets background color show through
-	
+
 	//finally, start a shuffledown function to fill in the gaps
 	// always taking indexes that are in the column above 
 
