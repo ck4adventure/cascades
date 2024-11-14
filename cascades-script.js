@@ -97,8 +97,6 @@ function dragOver(e) {
 	}
 }
 
-
-
 // dragend fires whenever let go of mouse
 function dragEnd(e) {
 	// in case we have moved over many different squares, recapture id
@@ -124,10 +122,6 @@ function dragDrop(e) {
 // all touching tiles to index of same type are taken off the board
 // and colorTypes need to shift downwards on the board
 function removeMatchingHorzTiles(squareID, type) {
-	// find left edge index
-	// find right edge index
-	// find top of col index
-	// find bottom of col index
 
 	// board pattern
 	//  0  1  2  3  4  5  6  7
@@ -135,9 +129,6 @@ function removeMatchingHorzTiles(squareID, type) {
 	// 16 17 18 19 20 21 22 23
 	// 24 25 26 27 28 29 30 31 ...
 
-	// Calculate the row and column of the dragged square
-	// const draggedRow = Math.floor(squareIdBeingDragged / width);
-	// const draggedCol = squareIdBeingDragged % width;
 
 	let horzMatchIDs = [squareID]
 	const leftMoves = squareID % width; // ie 11 % 8 = 3
@@ -169,10 +160,6 @@ function removeMatchingHorzTiles(squareID, type) {
 }
 
 function removeMatchingVertTiles(squareID, type) {
-	// find left edge index
-	// find right edge index
-	// find top of col index
-	// find bottom of col index
 
 	// board pattern
 	//  0  1  2  3  4  5  6  7
