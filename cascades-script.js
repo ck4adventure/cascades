@@ -75,47 +75,91 @@ function dragStart(e) {
 	squareIdBeingDragged = parseInt(this.id);
 }
 
+// dragOver needs to ensure a valid drop target
 function dragOver(e) {
-	// on enter, it should be able to know which id it is on
-	// we can check here if move it valid and enable drop
 	colorTypeBeingReplaced = this.dataset.type;
 	squareIdBeingReplaced = parseInt(this.id);
 
-	// Calculate the row and column of the dragged square
-	const draggedRow = Math.floor(squareIdBeingDragged / width);
-	const draggedCol = squareIdBeingDragged % width;
 
-	// Define valid moves and check for edge cases
-	const validMove = (
-		(squareIdBeingReplaced === squareIdBeingDragged - 1 && draggedCol > 0) || // Left
-		(squareIdBeingReplaced === squareIdBeingDragged + 1 && draggedCol < width - 1) || // Right
-		(squareIdBeingReplaced === squareIdBeingDragged - width && draggedRow >= 0) || // Up
-		(squareIdBeingReplaced === squareIdBeingDragged + width && draggedRow < height - 1) // Down
-	);
-	if (validMove) {
-		e.preventDefault();
+	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
+		e.preventDefault(e)
 	}
 }
 
-// dragend fires whenever let go of mouse
-function dragEnd(e) {
-	// in case we have moved over many different squares, recapture id
-	colorTypeBeingReplaced = this.dataset.type;
-	squareIdBeingReplaced = parseInt(this.id);
-	// at this point we have to check if there is an actual match
-	// reversing the pieces if not
+
+
+function makesThreeInARow(index, colorType) {
+	// Horizontal check
+	const rowStart = Math.floor(index / width) * width;
+	const rowEnd = rowStart + width;
+	let horizontalCount = 1;
+
+	// Check left
+	for (let i = index - 1; i >= rowStart && squares[i].dataset.type === colorType; i--) {
+		horizontalCount++;
+	}
+	// Check right
+	for (let i = index + 1; i < rowEnd && squares[i].dataset.type === colorType; i++) {
+		horizontalCount++;
+	}
+	if (horizontalCount >= 3) return true;
+
+	// Vertical check
+	let verticalCount = 1;
+
+	// Check up
+	for (let i = index - width; i >= 0 && squares[i].dataset.type === colorType; i -= width) {
+		verticalCount++;
+	}
+	// Check down
+	for (let i = index + width; i < width * height && squares[i].dataset.type === colorType; i += width) {
+		verticalCount++;
+	}
+	if (verticalCount >= 3) return true;
+
+	return false;
+}
+
+
+function dragEnd() {
+	// this should fire last apparently, as a cleanup function
 }
 
 // drop fires only if valid drop target under mouse on end
 function dragDrop(e) {
-	squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
-	squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-	// handle matches
-	removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged)
-	removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced)
-	removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged)
-	removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced)
+	// rerun the entire check in case user drags square around
+	colorTypeBeingReplaced = this.dataset.type;
+	squareIdBeingReplaced = parseInt(this.id);
+
+	// Define valid moves and check for edge cases
+	// valid is only one square in each direction
+	// but it should also be part of a match horz/vertical
+	const validMove = isValidMove(squareIdBeingDragged, squareIdBeingReplaced)
+	if (validMove && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
+		// if valid, try the swap
+		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+
+		removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+		removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+	}
+
 }
+
+function isValidMove(squareIdBeingDragged, squareIdBeingReplaced) {
+	const draggedRow = Math.floor(squareIdBeingDragged / width);
+	const draggedCol = squareIdBeingDragged % width;
+
+	return (
+		(squareIdBeingReplaced === squareIdBeingDragged - 1 && draggedCol > 0) || // Left
+		(squareIdBeingReplaced === squareIdBeingDragged + 1 && draggedCol < width - 1) || // Right
+		(squareIdBeingReplaced === squareIdBeingDragged - width && draggedRow > 0) || // Up
+		(squareIdBeingReplaced === squareIdBeingDragged + width && draggedRow < height - 1) // Down
+	);
+}
+
 
 // removeMatchingTiles starts with squareIdBeingReplaced
 // it needs to look left, right, up, down to edges of board
@@ -183,7 +227,7 @@ function removeMatchingVertTiles(squareID, type) {
 	// delete them all at once, leaving gaps on the board 
 	// null square lets background color show through
 	let down = squareID + width;
-	while (down < squares.length && squares[down].dataset.type === type ) {
+	while (down < squares.length && squares[down].dataset.type === type) {
 		vertMatchIDs.push(down);
 		down += width;
 	}
