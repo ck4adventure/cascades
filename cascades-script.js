@@ -239,7 +239,13 @@ function removeMatchingVertTiles(squareID, type) {
 
 }
 
+// attach resetGame function to reset button
+document.getElementById('reset-button').addEventListener('click', resetGame);
 
-
+function resetGame() {
+	squares = []; // take out color data
+	gameBoard.innerHTML = ''; // Clear the board display
+	createBoard();
+}
 
 createBoard();
