@@ -28,7 +28,7 @@ function createBoard() {
 		// pick a random color/dataset-type by indexing into the colors array
 		let randomColor;
 		do {
-			randomColor = colors[Math.floor(Math.random() * colors.length)];
+			randomColor = getRandomColor();
 			square.dataset.type = randomColor;
 		} while (isThreeInARow(i, randomColor));
 
@@ -48,6 +48,10 @@ function createBoard() {
 		squares.push(square);
 
 	}
+}
+
+function getRandomColor() {
+	return colors[Math.floor(Math.random() * colors.length)];
 }
 
 // isThreeInARow should check for 3 in a row horz and vert
@@ -123,6 +127,7 @@ function makesThreeInARow(index, colorType) {
 
 function dragEnd() {
 	// this should fire last apparently, as a cleanup function
+	// I think function for move and clear can trigger here
 }
 
 // drop fires only if valid drop target under mouse on end
@@ -140,11 +145,15 @@ function dragDrop(e) {
 		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
 		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
+		// everything is allowed to disappear together
 		removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 		removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+
+		moveDown();
 	}
+
 
 }
 
@@ -198,7 +207,10 @@ function removeMatchingHorzTiles(squareID, type) {
 	}
 
 	if (horzMatchIDs.length >= 3) {
-		horzMatchIDs.forEach(id => squares[id].dataset.type = null)
+		console.log("setting horz match ids to null: ", horzMatchIDs);
+		horzMatchIDs.forEach(id => {
+			squares[id].dataset.type = "null";
+		})
 	}
 
 }
@@ -234,10 +246,65 @@ function removeMatchingVertTiles(squareID, type) {
 
 
 	if (vertMatchIDs.length >= 3) {
-		vertMatchIDs.forEach(id => squares[id].dataset.type = null)
+		console.log("setting vertical match ids to null: ", vertMatchIDs);
+		vertMatchIDs.forEach(id => {
+			squares[id].dataset.type = "null";
+		})
 	}
 
 }
+
+// moveDown probably should start at highest index deleted
+// but for now can start at bottom and work through it all
+function moveDown() {
+	// if vertical match, is unknown blanks above
+	// need to always fill in by columns
+	// while i-width is null, repeat moving up until we find a color
+	// if get to top, start generating random colors to fill in
+	console.log('triggered moveDown')
+	const bottomLeft = squares.length - width;
+	let emptyIndexes = []
+	let colors = [];
+
+	for (let i = squares.length - 1, col = 7; i >= bottomLeft; i--, col--) {
+		console.log("checking column: ", col)
+		// climb up the column, if nothing empty, move on
+		// once something is found need to get it all the way down
+		let current = i;
+
+		while (current > 0) {
+			const value = squares[current].dataset.type;
+			if (value === "null") {
+				emptyIndexes.push(current);
+			} else if (value !== "null" && emptyIndexes.length > 0) {
+				console.log('next color found: ', squares[current].dataset.type);
+				const colorFound = squares[current].dataset.type;
+				const nextUP = emptyIndexes.shift();
+				squares[current].dataset.type = "null";
+				emptyIndexes.push(current);
+				squares[nextUP].dataset.type = colorFound;
+			}
+			current -= width;
+
+		}
+		
+		console.log("still need to fill: ", emptyIndexes);
+		
+		while (emptyIndexes.length > 0) {
+			const nextUp = emptyIndexes.shift();
+			squares[nextUp].dataset.type = getRandomColor();
+		}
+		// console.log('empties: ', emptyIndexes);
+
+		// reset for new column check
+		emptyIndexes = [];
+		colors = [];
+
+	}
+
+
+}
+
 
 // attach resetGame function to reset button
 document.getElementById('reset-button').addEventListener('click', resetGame);

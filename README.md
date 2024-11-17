@@ -4,12 +4,9 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 Started with some code from ChatGPT, but it was so flawed I decided to work out my own logic.
 
 ### Current Status
-- Matches in both horizontal and vertical direction set to null
-- Still allows pieces to be moved even if no match created
+Working fill in of tiles from top to bottom. 
 
 ### Next Steps
-- Work on not allowing a move unless a match is created
-- Add logic for filling in the empty spots by shifting squares above them downwards
 - Add logic to scan for new matches made once board full again
 - Add logic to continue filling in pieces and eliminating matches until the 'cascade' stops and board is full again
 
