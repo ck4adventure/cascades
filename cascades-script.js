@@ -1,7 +1,7 @@
 // 1. create a board with random tiles
 // 2. be able to switch tiles
 const width = 8;
-const height = 10;
+const height = 8;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
 let colors = ['1', '2', '3', '4', '5', '6', '7']
@@ -91,7 +91,7 @@ function dragOver(e) {
 }
 
 
-
+// makesThreeInARow checks around the index specified
 function makesThreeInARow(index, colorType) {
 	// Horizontal check
 	const rowStart = Math.floor(index / width) * width;
@@ -124,7 +124,7 @@ function makesThreeInARow(index, colorType) {
 	return false;
 }
 
-
+// dragEnd is a cleanup function of drag n drop api
 function dragEnd() {
 	// this should fire last apparently, as a cleanup function
 	// I think function for move and clear can trigger here
@@ -146,14 +146,21 @@ function dragDrop(e) {
 		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
 		// everything is allowed to disappear together
-		removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
-		removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+
+		const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		all.sort();
+		// console.log("all: ", all)
 
 		moveDown();
-	}
 
+		// findCascadeMatches checks around the indexes nulled
+		// if any matches, will need to move down again
+		findCascadeMatches(all)
+	}
 
 }
 
@@ -207,11 +214,15 @@ function removeMatchingHorzTiles(squareID, type) {
 	}
 
 	if (horzMatchIDs.length >= 3) {
-		console.log("setting horz match ids to null: ", horzMatchIDs);
+		// console.log("setting horz match ids to null: ", horzMatchIDs);
 		horzMatchIDs.forEach(id => {
 			squares[id].dataset.type = "null";
 		})
+
+		return horzMatchIDs;
 	}
+
+	return [];
 
 }
 
@@ -246,12 +257,15 @@ function removeMatchingVertTiles(squareID, type) {
 
 
 	if (vertMatchIDs.length >= 3) {
-		console.log("setting vertical match ids to null: ", vertMatchIDs);
+		// console.log("setting vertical match ids to null: ", vertMatchIDs);
 		vertMatchIDs.forEach(id => {
 			squares[id].dataset.type = "null";
 		})
+		return vertMatchIDs;
 	}
 
+
+	return [];
 }
 
 // moveDown probably should start at highest index deleted
@@ -267,17 +281,17 @@ function moveDown() {
 	let colors = [];
 
 	for (let i = squares.length - 1, col = 7; i >= bottomLeft; i--, col--) {
-		console.log("checking column: ", col)
+		// console.log("checking column: ", col)
 		// climb up the column, if nothing empty, move on
 		// once something is found need to get it all the way down
 		let current = i;
 
-		while (current > 0) {
+		while (current >= 0) {
 			const value = squares[current].dataset.type;
 			if (value === "null") {
 				emptyIndexes.push(current);
 			} else if (value !== "null" && emptyIndexes.length > 0) {
-				console.log('next color found: ', squares[current].dataset.type);
+				// console.log('next color found: ', squares[current].dataset.type);
 				const colorFound = squares[current].dataset.type;
 				const nextUP = emptyIndexes.shift();
 				squares[current].dataset.type = "null";
@@ -287,9 +301,7 @@ function moveDown() {
 			current -= width;
 
 		}
-		
-		console.log("still need to fill: ", emptyIndexes);
-		
+
 		while (emptyIndexes.length > 0) {
 			const nextUp = emptyIndexes.shift();
 			squares[nextUp].dataset.type = getRandomColor();
@@ -299,10 +311,108 @@ function moveDown() {
 		// reset for new column check
 		emptyIndexes = [];
 		colors = [];
-
 	}
 
 
+}
+
+// findCascadeMatches
+// always starting from the bottom up, find the first set of 3
+// 
+function findCascadeMatches(indexes) {
+	console.log("triggered cascade matches")
+	// starting with indexes given
+	// indexes come in sorted order
+	// start from the back, pop off lowest
+	// check in all directions 
+
+	let matchesFound = false;
+	let cascadeMatches = [];
+	// calculate column(s) above indexes
+	// 58, 59, 60
+	// we know that the list coming in should be unique
+	const set = new Set(indexes);
+	indexes.forEach( i => {
+		let tmp = i - width;
+		while (tmp >= 0) {
+			set.add(tmp);
+			tmp -= width;
+		}
+	})
+
+	let newIndexes = Array.from(set).sort((a,b) => a - b);
+
+	while (newIndexes.length > 0) {
+
+		const lowest = newIndexes.pop();
+		// console.log("checking index: ", lowest)
+		const type = squares[lowest].dataset.type;
+
+		let vertMatchIDs = [lowest];
+		// up
+		let up = lowest - width;
+		while (up >= 0 && squares[up].dataset.type === type) {
+			vertMatchIDs.push(up);
+			up -= width;
+		}
+		// down
+		let down = lowest + width;
+		while (down < squares.length && squares[down].dataset.type === type) {
+			vertMatchIDs.push(down);
+			down += width;
+		}
+
+		let horzMatchIDs = [lowest];
+		const leftMoves = lowest % width; // ie 11 % 8 = 3
+		const leftMostIndex = lowest - leftMoves; // 11 - 3 = 8
+		const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
+		const rightMostIndex = lowest + rightMoves; // 11 + 4 = 15
+
+		// left
+		let left = lowest - 1;
+		while (left >= leftMostIndex && squares[left].dataset.type === type) {
+			horzMatchIDs.push(left);
+			left--;
+		}
+		// right
+		let right = lowest + 1;
+		while (right <= rightMostIndex && squares[right].dataset.type === type) {
+			horzMatchIDs.push(right);
+			right++;
+		}
+
+
+		if (horzMatchIDs.length >= 3) {
+			matchesFound = true;
+			horzMatchIDs.forEach(id => {
+				squares[id].dataset.type = "null";
+			})
+			cascadeMatches = cascadeMatches.concat(horzMatchIDs);
+		}
+
+		if (vertMatchIDs.length >= 3) {
+			matchesFound = true;
+			vertMatchIDs.forEach(id => {
+				squares[id].dataset.type = "null";
+			})
+			cascadeMatches = cascadeMatches.concat(vertMatchIDs);
+		}
+
+
+
+	}
+			// if we did null things, need to check the whole gride
+		if (matchesFound) {
+			console.log("cascade matches were found")
+			moveDown();
+			findCascadeMatches(cascadeMatches);
+		}
+
+	// if any matches
+	// gather all the ids to be nulled from the entire block
+	// call move down
+
+	// check for findCascade matches again
 }
 
 
