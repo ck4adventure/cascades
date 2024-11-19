@@ -4,13 +4,14 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 Started with some code from ChatGPT, but it was so flawed I decided to work out my own logic.
 
 ### Current Status
-Working fill in of tiles from top to bottom. 
+Working cascade feature.
 
-### Next Steps
-- Add logic to scan for new matches made once board full again
-- Add logic to continue filling in pieces and eliminating matches until the 'cascade' stops and board is full again
+### Up Next
+- Reset button
+- slow down the animations if possible
 
 ### Eventual Features
+- refactor into a class based program
 - light and dark mode
 - custom height and width
 - custom number of color types
