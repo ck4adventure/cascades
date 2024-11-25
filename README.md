@@ -7,7 +7,6 @@ Started with some code from ChatGPT, but it was so flawed I decided to work out 
 Working cascade feature.
 
 ### Up Next
-- Reset button
 - slow down the animations if possible
 
 ### Eventual Features

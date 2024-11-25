@@ -136,6 +136,7 @@ function dragDrop(e) {
 	colorTypeBeingReplaced = this.dataset.type;
 	squareIdBeingReplaced = parseInt(this.id);
 
+
 	// Define valid moves and check for edge cases
 	// valid is only one square in each direction
 	// but it should also be part of a match horz/vertical
@@ -332,7 +333,7 @@ function findCascadeMatches(indexes) {
 	// 58, 59, 60
 	// we know that the list coming in should be unique
 	const set = new Set(indexes);
-	indexes.forEach( i => {
+	indexes.forEach(i => {
 		let tmp = i - width;
 		while (tmp >= 0) {
 			set.add(tmp);
@@ -340,7 +341,7 @@ function findCascadeMatches(indexes) {
 		}
 	})
 
-	let newIndexes = Array.from(set).sort((a,b) => a - b);
+	let newIndexes = Array.from(set).sort((a, b) => a - b);
 
 	while (newIndexes.length > 0) {
 
@@ -401,19 +402,16 @@ function findCascadeMatches(indexes) {
 
 
 	}
-			// if we did null things, need to check the whole gride
-		if (matchesFound) {
-			console.log("cascade matches were found")
-			moveDown();
-			findCascadeMatches(cascadeMatches);
-		}
+	// if we did null things, need to check the whole gride
+	if (matchesFound) {
+		console.log("cascade matches were found")
+		moveDown();
+		findCascadeMatches(cascadeMatches);
+	}
 
-	// if any matches
-	// gather all the ids to be nulled from the entire block
-	// call move down
-
-	// check for findCascade matches again
 }
+
+
 
 
 // attach resetGame function to reset button
