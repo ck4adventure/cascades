@@ -20,7 +20,7 @@ h1 {
 
 #game-container {
 	background-color: white;
-	width: 300px;
+	width: 400px;
 	padding: 20px;
 	border-radius: 10px;
 }
@@ -39,22 +39,59 @@ h1 {
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
 	grid-template-rows: repeat(8, 1fr);
-	gap: 2px;
+	gap: 4px;
 	margin-top: 20px;
+}
+
+@keyframes fillFromTop {
+	from {
+		background-size: 100% 0;
+	}
+
+	to {
+		background-size: 100% 100%;
+	}
 }
 
 .tile {
 	width: 100%;
 	border-radius: 5px;
 	padding-top: 100%;
+	background-repeat: no-repeat;
+	background-position: top;
+	background-size: 100% 100%;
+	transition: background-color 0.5s ease;
+}
+
+.tile.fill {
+    animation: fillFromTop 0.5s forwards;
 }
 
 /* data type will be used to convey different colored blocks */
-.tile[data-type="1"] { background-color: red;}
-.tile[data-type="2"] { background-color: orange;}
-.tile[data-type="3"] { background-color: yellow;}
-.tile[data-type="4"] { background-color: green;}
-.tile[data-type="5"] { background-color: blue;}
-.tile[data-type="6"] { background-color: purple;}
-.tile[data-type="7"] { background-color: pink;}
+.tile[data-type="1"] {
+	background-color: red;
+}
 
+.tile[data-type="2"] {
+	background-color: orange;
+}
+
+.tile[data-type="3"] {
+	background-color: yellow;
+}
+
+.tile[data-type="4"] {
+	background-color: green;
+}
+
+.tile[data-type="5"] {
+	background-color: blue;
+}
+
+.tile[data-type="6"] {
+	background-color: purple;
+}
+
+.tile[data-type="7"] {
+	background-color: pink;
+}

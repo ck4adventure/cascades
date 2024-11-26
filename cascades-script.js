@@ -266,20 +266,27 @@ function removeMatchingVertTiles(squareID, type) {
 	return [];
 }
 
+// animate fill should make things wait while animation runs
+function animateFill(element, color) {
+    return new Promise((resolve) => {
+        element.classList.add('fill');
+        element.dataset.type = color;
+        setTimeout(() => {
+            element.classList.remove('fill');
+            resolve();
+        }, 300); // Match the duration of the CSS animation
+    });
+}
+
 // moveDown probably should start at highest index deleted
 // but for now can start at bottom and work through it all
-function moveDown() {
-	// if vertical match, is unknown blanks above
-	// need to always fill in by columns
-	// while i-width is null, repeat moving up until we find a color
-	// if get to top, start generating random colors to fill in
 
+async function moveDown() {
+	console.log('triggered moveDown');
 	const bottomLeft = squares.length - width;
-	let emptyIndexes = []
+	let emptyIndexes = [];
 
 	for (let i = squares.length - 1, col = 7; i >= bottomLeft; i--, col--) {
-		// climb up the column, if nothing empty, move on
-		// once something is found need to get it all the way down
 		let current = i;
 
 		while (current >= 0) {
@@ -291,22 +298,20 @@ function moveDown() {
 				const nextUP = emptyIndexes.shift();
 				squares[current].dataset.type = "null";
 				emptyIndexes.push(current);
-				squares[nextUP].dataset.type = colorFound;
+
+				// apply fill animation
+				await animateFill(squares[nextUP], colorFound);
 			}
 			current -= width;
-
 		}
 
+		// Fill the top row with new pieces if needed
 		while (emptyIndexes.length > 0) {
 			const nextUp = emptyIndexes.shift();
-			squares[nextUp].dataset.type = getRandomColor();
+            const newColor = getRandomColor();
+            await animateFill(squares[nextUp], newColor);
 		}
-
-		// reset for new column check
-		emptyIndexes = [];
 	}
-
-
 }
 
 // findCascadeMatches
