@@ -276,7 +276,6 @@ function moveDown() {
 
 	const bottomLeft = squares.length - width;
 	let emptyIndexes = []
-	let colors = [];
 
 	for (let i = squares.length - 1, col = 7; i >= bottomLeft; i--, col--) {
 		// climb up the column, if nothing empty, move on
@@ -305,7 +304,6 @@ function moveDown() {
 
 		// reset for new column check
 		emptyIndexes = [];
-		colors = [];
 	}
 
 
