@@ -44,10 +44,29 @@ function createBoard() {
 		// drop occurs only if a valid target
 		square.addEventListener('drop', dragDrop);
 
+		// debugging to check square type
+		// square.addEventListener('mouseover', showSquareType);
+		// square.addEventListener('mouseout', hideSquareType);
+
 		gameBoard.appendChild(square);
 		squares.push(square);
 
 	}
+}
+
+function showSquareType(e) {
+    const squareId = e.target.id;
+    const square = squares[squareId];
+    const tooltip = document.getElementById('tooltip');
+    tooltip.textContent = `Type: ${square.dataset.type}`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${e.pageX + 10}px`;
+    tooltip.style.top = `${e.pageY + 10}px`;
+}
+
+function hideSquareType() {
+    const tooltip = document.getElementById('tooltip');
+    tooltip.style.display = 'none';
 }
 
 function getRandomColor() {
@@ -152,14 +171,11 @@ function dragDrop(e) {
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
-		const all = [...horz1, ...horz2, ...verts1, ...verts2];
-		all.sort();
+		// const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		// all.sort();
 
 		moveDown();
 
-		// findCascadeMatches checks around the indexes nulled
-		// if any matches, will need to move down again
-		findCascadeMatches(all)
 	}
 
 }
@@ -182,7 +198,6 @@ function isValidMove(squareIdBeingDragged, squareIdBeingReplaced) {
 // all touching tiles to index of same type are taken off the board
 // and colorTypes need to shift downwards on the board
 function removeMatchingHorzTiles(squareID, type) {
-
 	// board pattern
 	//  0  1  2  3  4  5  6  7
 	//  8  9 10 11 12 13 14 15
@@ -226,7 +241,6 @@ function removeMatchingHorzTiles(squareID, type) {
 }
 
 function removeMatchingVertTiles(squareID, type) {
-
 	// board pattern
 	//  0  1  2  3  4  5  6  7
 	//  8  9 10 11 12 13 14 15
@@ -262,27 +276,26 @@ function removeMatchingVertTiles(squareID, type) {
 		return vertMatchIDs;
 	}
 
-
 	return [];
 }
 
 // animate fill should make things wait while animation runs
 function animateFill(element, color) {
-    return new Promise((resolve) => {
-        element.classList.add('fill');
-        element.dataset.type = color;
-        setTimeout(() => {
-            element.classList.remove('fill');
-            resolve();
-        }, 300); // Match the duration of the CSS animation
-    });
+	return new Promise((resolve) => {
+		element.classList.add('fill');
+		element.dataset.type = color;
+		setTimeout(() => {
+			element.classList.remove('fill');
+			resolve();
+		}, 300); // Match the duration of the CSS animation
+	});
 }
 
 // moveDown probably should start at highest index deleted
 // but for now can start at bottom and work through it all
-
+// moveDown looks for any nulled indexes and shifts the squares colors downward by col
 async function moveDown() {
-	console.log('triggered moveDown');
+	console.log('moveDown started');
 	const bottomLeft = squares.length - width;
 	let emptyIndexes = [];
 
@@ -308,72 +321,56 @@ async function moveDown() {
 		// Fill the top row with new pieces if needed
 		while (emptyIndexes.length > 0) {
 			const nextUp = emptyIndexes.shift();
-            const newColor = getRandomColor();
-            await animateFill(squares[nextUp], newColor);
+			const newColor = getRandomColor();
+			await animateFill(squares[nextUp], newColor);
 		}
 	}
+
+	findCascadeMatches();
 }
 
 // findCascadeMatches
 // always starting from the bottom up, find the first set of 3
-// 
-function findCascadeMatches(indexes) {
-
-	// starting with indexes given
-	// indexes come in sorted order
-	// start from the back, pop off lowest
-	// check in all directions 
+// findCascadeMatches starts from the bottom right and searches for all matches
+function findCascadeMatches() {
+	console.log("cascade triggered");
 
 	let matchesFound = false;
-	let cascadeMatches = [];
-	// calculate column(s) above indexes
-	// 58, 59, 60
-	// we know that the list coming in should be unique
-	const set = new Set(indexes);
-	indexes.forEach(i => {
-		let tmp = i - width;
-		while (tmp >= 0) {
-			set.add(tmp);
-			tmp -= width;
-		}
-	})
 
-	let newIndexes = Array.from(set).sort((a, b) => a - b);
+	for (let index = squares.length - 1; index >= 0; index--) {
 
-	while (newIndexes.length > 0) {
+		// const lowest = newIndexes.pop();
 
-		const lowest = newIndexes.pop();
+		const type = squares[index].dataset.type;
 
-		const type = squares[lowest].dataset.type;
-
-		let vertMatchIDs = [lowest];
+		let vertMatchIDs = [index];
 		// up
-		let up = lowest - width;
+		let up = index - width;
 		while (up >= 0 && squares[up].dataset.type === type) {
 			vertMatchIDs.push(up);
 			up -= width;
 		}
 		// down
-		let down = lowest + width;
+		let down = index + width;
 		while (down < squares.length && squares[down].dataset.type === type) {
 			vertMatchIDs.push(down);
 			down += width;
 		}
 
-		let horzMatchIDs = [lowest];
-		const leftMoves = lowest % width; // ie 11 % 8 = 3
-		const leftMostIndex = lowest - leftMoves; // 11 - 3 = 8
+		let horzMatchIDs = [index];
+		const leftMoves = index % width; // ie 11 % 8 = 3
+		const leftMostIndex = index - leftMoves; // 11 - 3 = 8
 		const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
-		const rightMostIndex = lowest + rightMoves; // 11 + 4 = 15
+		const rightMostIndex = index + rightMoves; // 11 + 4 = 15
 
 		// left
-		let left = lowest - 1;
+		let left = index - 1;
 		while (left >= leftMostIndex && squares[left].dataset.type === type) {
 			horzMatchIDs.push(left);
 			left--;
 		}
 		// right
-		let right = lowest + 1;
+		let right = index + 1;
 		while (right <= rightMostIndex && squares[right].dataset.type === type) {
 			horzMatchIDs.push(right);
 			right++;
@@ -385,7 +382,6 @@ function findCascadeMatches(indexes) {
 			horzMatchIDs.forEach(id => {
 				squares[id].dataset.type = "null";
 			})
-			cascadeMatches = cascadeMatches.concat(horzMatchIDs);
 		}
 
 		if (vertMatchIDs.length >= 3) {
@@ -393,22 +389,17 @@ function findCascadeMatches(indexes) {
 			vertMatchIDs.forEach(id => {
 				squares[id].dataset.type = "null";
 			})
-			cascadeMatches = cascadeMatches.concat(vertMatchIDs);
 		}
 
-
-
 	}
-	// if we did null things, need to check the whole gride
-	if (matchesFound) {
 
+	// if it's been flipped to true, do another move down
+	if (matchesFound) {
+		console.log("matches were found, should move down");
 		moveDown();
-		findCascadeMatches(cascadeMatches);
 	}
 
 }
-
-
 
 
 // attach resetGame function to reset button
