@@ -54,6 +54,12 @@ h1 {
     z-index: 1000;
 }
 
+#credits-box {
+	display: flex;
+	justify-content: center;
+	padding-top: 20px;
+}
+
 @keyframes fillFromTop {
 	from {
 		background-size: 100% 0;
