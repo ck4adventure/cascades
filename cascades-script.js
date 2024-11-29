@@ -295,7 +295,6 @@ function animateFill(element, color) {
 // but for now can start at bottom and work through it all
 // moveDown looks for any nulled indexes and shifts the squares colors downward by col
 async function moveDown() {
-	console.log('moveDown started');
 	const bottomLeft = squares.length - width;
 	let emptyIndexes = [];
 
@@ -333,7 +332,6 @@ async function moveDown() {
 // always starting from the bottom up, find the first set of 3
 // findCascadeMatches starts from the bottom right and searches for all matches
 function findCascadeMatches() {
-	console.log("cascade triggered");
 
 	let matchesFound = false;
 
@@ -395,7 +393,7 @@ function findCascadeMatches() {
 
 	// if it's been flipped to true, do another move down
 	if (matchesFound) {
-		console.log("matches were found, should move down");
+		// console.log("cascade matches were found, should move down");
 		moveDown();
 	}
 
@@ -410,5 +408,30 @@ function resetGame() {
 	gameBoard.innerHTML = ''; // Clear the board display
 	createBoard();
 }
+
+document.getElementById('how-to-button').addEventListener('click', showRulesModal);
+
+// Function to show the rules modal
+function showRulesModal() {
+    const modal = document.getElementById('how-to-modal');
+    modal.style.display = 'block';
+}
+
+// Function to hide the rules modal
+function hideRulesModal() {
+    const modal = document.getElementById('how-to-modal');
+    modal.style.display = 'none';
+}
+
+// Event listener for the close button
+document.querySelector('.close-button').addEventListener('click', hideRulesModal);
+
+// Event listener to close the modal when clicking outside of it
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('rules-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
 
 createBoard();
