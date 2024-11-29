@@ -7,6 +7,13 @@ let squares = [];
 let colors = ['1', '2', '3', '4', '5', '6', '7']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
+let currentScore = 0;
+
+function updateScore(points) {
+    currentScore += points;
+    document.getElementById('current-score').innerHTML = currentScore;
+}
+
 // board pattern
 //  0  1  2  3  4  5  6  7
 //  8  9 10 11 12 13 14 15
@@ -135,7 +142,9 @@ function handleTouchEnd(e) {
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
-		// const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		const all = [...horz1, ...horz2, ...verts1, ...verts2];
+
+		updateScore(all.length * 10)
 		// all.sort();
 
 		moveDown();
@@ -236,9 +245,10 @@ function dragDrop(e) {
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
-		// const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
 		// all.sort();
-
+		updateScore(all.size * 10)
+		
 		moveDown();
 
 	}
@@ -399,6 +409,8 @@ async function moveDown() {
 function findCascadeMatches() {
 
 	let matchesFound = false;
+	let vertMatchIDs, horzMatchIDs;
+	const matchesSet = new Set();
 
 	for (let index = squares.length - 1; index >= 0; index--) {
 
@@ -406,7 +418,7 @@ function findCascadeMatches() {
 
 		const type = squares[index].dataset.type;
 
-		let vertMatchIDs = [index];
+		vertMatchIDs = [index];
 		// up
 		let up = index - width;
 		while (up >= 0 && squares[up].dataset.type === type) {
@@ -420,7 +432,7 @@ function findCascadeMatches() {
 			down += width;
 		}
 
-		let horzMatchIDs = [index];
+		horzMatchIDs = [index];
 		const leftMoves = index % width; // ie 11 % 8 = 3
 		const leftMostIndex = index - leftMoves; // 11 - 3 = 8
 		const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
@@ -444,6 +456,7 @@ function findCascadeMatches() {
 			matchesFound = true;
 			horzMatchIDs.forEach(id => {
 				squares[id].dataset.type = "null";
+				matchesSet.add(id);
 			})
 		}
 
@@ -451,10 +464,15 @@ function findCascadeMatches() {
 			matchesFound = true;
 			vertMatchIDs.forEach(id => {
 				squares[id].dataset.type = "null";
+				matchesSet.add(id);
 			})
 		}
 
+		vertMatchIDs = null;
+		horzMatchIDs = null;
+
 	}
+	updateScore(matchesSet.size * 10);
 
 	// if it's been flipped to true, do another move down
 	if (matchesFound) {
@@ -469,6 +487,8 @@ document.getElementById('reset-button').addEventListener('click', resetGame);
 
 function resetGame() {
 	squares = []; // take out color data
+	currentScore = 0;
+	updateScore(0);
 	gameBoard.innerHTML = ''; // Clear the board display
 	createBoard();
 }
