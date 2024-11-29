@@ -245,9 +245,9 @@ function dragDrop(e) {
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
-		const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
 		// all.sort();
-		updateScore(all.length * 10)
+		updateScore(all.size * 10)
 		
 		moveDown();
 
