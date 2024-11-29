@@ -48,6 +48,12 @@ function createBoard() {
 		// square.addEventListener('mouseover', showSquareType);
 		// square.addEventListener('mouseout', hideSquareType);
 
+		// Add touch event listeners
+		square.addEventListener('touchstart', handleTouchStart);
+		square.addEventListener('touchmove', handleTouchMove);
+		square.addEventListener('touchend', handleTouchEnd);
+		square.addEventListener('touchcancel', handleTouchCancel);
+
 		gameBoard.appendChild(square);
 		squares.push(square);
 
@@ -55,18 +61,18 @@ function createBoard() {
 }
 
 function showSquareType(e) {
-    const squareId = e.target.id;
-    const square = squares[squareId];
-    const tooltip = document.getElementById('tooltip');
-    tooltip.textContent = `Type: ${square.dataset.type}`;
-    tooltip.style.display = 'block';
-    tooltip.style.left = `${e.pageX + 10}px`;
-    tooltip.style.top = `${e.pageY + 10}px`;
+	const squareId = e.target.id;
+	const square = squares[squareId];
+	const tooltip = document.getElementById('tooltip');
+	tooltip.textContent = `Type: ${square.dataset.type}`;
+	tooltip.style.display = 'block';
+	tooltip.style.left = `${e.pageX + 10}px`;
+	tooltip.style.top = `${e.pageY + 10}px`;
 }
 
 function hideSquareType() {
-    const tooltip = document.getElementById('tooltip');
-    tooltip.style.display = 'none';
+	const tooltip = document.getElementById('tooltip');
+	tooltip.style.display = 'none';
 }
 
 function getRandomColor() {
@@ -92,7 +98,71 @@ function isThreeInARow(index, colorType) {
 	return false;
 }
 
+// mobile
+function handleTouchStart(e) {
+	colorTypeBeingDragged = this.dataset.type;
+	squareIdBeingDragged = parseInt(this.id);
+}
 
+function handleTouchMove(e) {
+    e.preventDefault(); // Prevent default scrolling behavior
+
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (element && element.classList.contains('tile')) {
+        colorTypeBeingReplaced = element.dataset.type;
+        squareIdBeingReplaced = parseInt(element.id);
+    }
+}
+
+// TODO refactor into single function for touchEnd and dragDrop
+// handleTouchEnd is for a successful switch where players finger comes up
+function handleTouchEnd(e) {
+	// rerun the entire check in case user drags square around
+	console.log('Touch end:', squareIdBeingReplaced);
+
+
+
+
+
+	// Define valid moves and check for edge cases
+	// valid is only one square in each direction
+	// but it should also be part of a match horz/vertical
+	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
+		// if valid, try the swap
+		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+
+		// everything is allowed to disappear together
+		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
+		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
+
+		// const all = [...horz1, ...horz2, ...verts1, ...verts2];
+		// all.sort();
+
+		moveDown();
+
+	} else {
+        // Reset variables if the move is not valid
+        colorTypeBeingDragged = null;
+        squareIdBeingDragged = null;
+        colorTypeBeingReplaced = null;
+        squareIdBeingReplaced = null;
+    }
+}
+
+function handleTouchCancel(e) {
+    console.log('Touch cancel');
+    // Reset variables
+    colorTypeBeingDragged = null;
+    squareIdBeingDragged = null;
+    colorTypeBeingReplaced = null;
+    squareIdBeingReplaced = null;
+}
+// dragStart identifies the square chosen by the player's click
 function dragStart(e) {
 	colorTypeBeingDragged = this.dataset.type;
 	squareIdBeingDragged = parseInt(this.id);
