@@ -13,24 +13,34 @@
 		<h1>Cascades</h1>
 
 		<div id="score-board">
+			<div id="score-box">Score: <div id="current-score">0</div>
+			</div>
 
+		</div>
+		<div id="reset-box">
 			<button id="reset-button">Reset Board</button>
 		</div>
+		
 		<div id="game-board"></div>
+		
 		<div id="tooltip"
 			style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 5px; border-radius: 5px;">
 		</div>
+		
 		<div id="credits-box">
 			<div id="link-box"><a href="https://github.com/ck4adventure/cascades">Github</a></div>
 			<div id="version-box">v0.2</div>
 			<div id="how-to-button-box"><button id="how-to-button">How to Play</button></div>
 		</div>
+		
 		<div id="how-to-modal" class="modal">
 			<div class="modal-content">
 				<span class="close-button">&times;</span>
 				<h2>How to Play</h2>
-				<p>Match 3 in a row horizontally or vertically by dragging squares. Squares can only move 1 unit in each direction, and only if it makes a match of 3 or more.</p>
-				<p>Once a match is formed, tiles will move downwards in a cascade. If a new 3 in a row is formed, tiles will continue cascading.</p>
+				<p>Match 3 in a row horizontally or vertically by dragging squares. Squares can only move 1 unit in each
+					direction, and only if it makes a match of 3 or more.</p>
+				<p>Once a match is formed, tiles will move downwards in a cascade. If a new 3 in a row is formed, tiles will
+					continue cascading.</p>
 			</div>
 		</div>
 	</div>
