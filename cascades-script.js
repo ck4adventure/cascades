@@ -119,12 +119,7 @@ function handleTouchMove(e) {
 // TODO refactor into single function for touchEnd and dragDrop
 // handleTouchEnd is for a successful switch where players finger comes up
 function handleTouchEnd(e) {
-	// rerun the entire check in case user drags square around
-	console.log('Touch end:', squareIdBeingReplaced);
-
-
-
-
+	// don't have to rerun the entire check in case user drags square around
 
 	// Define valid moves and check for edge cases
 	// valid is only one square in each direction
@@ -155,7 +150,7 @@ function handleTouchEnd(e) {
 }
 
 function handleTouchCancel(e) {
-    console.log('Touch cancel');
+
     // Reset variables
     colorTypeBeingDragged = null;
     squareIdBeingDragged = null;
@@ -463,7 +458,6 @@ function findCascadeMatches() {
 
 	// if it's been flipped to true, do another move down
 	if (matchesFound) {
-		// console.log("cascade matches were found, should move down");
 		moveDown();
 	}
 
