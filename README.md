@@ -16,10 +16,11 @@ Working cascade feature.
 
 
 ## Version History
-#### v0.3
-- unpublished
+#### v0.3 11/30/24
 - adds basic 10pts per square game scoring
 - resetting board resets the score
+- update colors for higher visibility
+- fix bug of allowing switch if not 3 in a row
 
 
 #### v0.2 11/28/24
