@@ -125,7 +125,7 @@ function handleTouchMove(e) {
 
 // TODO refactor into single function for touchEnd and dragDrop
 // handleTouchEnd is for a successful switch where players finger comes up
-function handleTouchEnd(e) {
+async function handleTouchEnd(e) {
 	// don't have to rerun the entire check in case user drags square around
 
 	// Define valid moves and check for edge cases
@@ -135,6 +135,7 @@ function handleTouchEnd(e) {
 		// if valid, try the swap
 		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
 		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+		await animateFill(squares[squareIdBeingReplaced], colorTypeBeingDragged);
 
 		// everything is allowed to disappear together
 		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
@@ -237,7 +238,7 @@ function dragDrop(e) {
 	if (validMove && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
 		// if valid, try the swap
 		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
 		// everything is allowed to disappear together
 		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
@@ -362,7 +363,7 @@ function animateFill(element, color) {
 		setTimeout(() => {
 			element.classList.remove('fill');
 			resolve();
-		}, 300); // Match the duration of the CSS animation
+		}, 500); // Match the duration of the CSS animation
 	});
 }
 
