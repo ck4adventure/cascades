@@ -363,7 +363,7 @@ function animateFill(element, color) {
 		setTimeout(() => {
 			element.classList.remove('fill');
 			resolve();
-		}, 500); // Match the duration of the CSS animation
+		}, 200); // Match the duration of the CSS animation
 	});
 }
 
