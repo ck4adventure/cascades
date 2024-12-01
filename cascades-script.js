@@ -230,15 +230,16 @@ function dragDrop(e) {
 	colorTypeBeingReplaced = this.dataset.type;
 	squareIdBeingReplaced = parseInt(this.id);
 
+	squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+	squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
 	// Define valid moves and check for edge cases
 	// valid is only one square in each direction
 	// but it should also be part of a match horz/vertical
-	const validMove = isValidMove(squareIdBeingDragged, squareIdBeingReplaced)
-	if (validMove && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
+	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
 		// if valid, try the swap
-		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+		// squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
 		// everything is allowed to disappear together
 		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
@@ -252,6 +253,9 @@ function dragDrop(e) {
 		
 		moveDown();
 
+	} else {
+		squares[squareIdBeingDragged].dataset.type = colorTypeBeingDragged;
+		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingReplaced;
 	}
 
 }
