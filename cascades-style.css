@@ -43,6 +43,12 @@ h1 {
 
 }
 
+#controls-box {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 #reset-box {
 	display: flex;
 	justify-items: center;
@@ -54,6 +60,14 @@ h1 {
 	width: 80px;
 	margin: auto;
 }
+
+.slider-control-box {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+/* #speed-control-box {} */
+
 
 #game-board {
 
