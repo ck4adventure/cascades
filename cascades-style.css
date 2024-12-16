@@ -120,9 +120,11 @@ a {
 }
 
 .tile {
+	text-align: center;
 	width: 100%;
 	border-radius: 5px;
-	padding-top: 100%;
+	padding-top: 40%;
+	padding-bottom: 40%;
 	background-repeat: no-repeat;
 	background-position: top;
 	background-size: 100% 100%;
@@ -143,7 +145,7 @@ a {
 }
 
 .tile[data-type="3"] {
-	background-color: lightgray;
+	background-color: yellow;
 }
 
 .tile[data-type="4"] {
@@ -159,7 +161,15 @@ a {
 }
 
 .tile[data-type="7"] {
+	background-color: deeppink;
+}
+
+.tile[data-type="8"] {
 	background-color: gray;
+}
+
+.tile[data-type="9"] {
+	background-color: aquamarine;
 }
 
 .modal {

@@ -4,14 +4,14 @@ const width = 8;
 const height = 8;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
-let colors = ['1', '2', '3', '4', '5', '6', '7']
+let colors = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
 let currentScore = 0;
 
 function updateScore(points) {
-    currentScore += points;
-    document.getElementById('current-score').innerHTML = currentScore;
+	currentScore += points;
+	document.getElementById('current-score').innerHTML = currentScore;
 }
 
 // board pattern
@@ -29,6 +29,8 @@ function createBoard() {
 		square.id = i;
 		// add to it the tile class
 		square.classList.add('tile');
+		      // Set the inner text to the index number
+    square.innerText = i;
 
 		// allow it to be draggable
 		square.setAttribute('draggable', true);
@@ -112,15 +114,15 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
-    e.preventDefault(); // Prevent default scrolling behavior
+	e.preventDefault(); // Prevent default scrolling behavior
 
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+	const touch = e.touches[0];
+	const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    if (element && element.classList.contains('tile')) {
-        colorTypeBeingReplaced = element.dataset.type;
-        squareIdBeingReplaced = parseInt(element.id);
-    }
+	if (element && element.classList.contains('tile')) {
+		colorTypeBeingReplaced = element.dataset.type;
+		squareIdBeingReplaced = parseInt(element.id);
+	}
 }
 
 // TODO refactor into single function for touchEnd and dragDrop
@@ -151,21 +153,21 @@ async function handleTouchEnd(e) {
 		moveDown();
 
 	} else {
-        // Reset variables if the move is not valid
-        colorTypeBeingDragged = null;
-        squareIdBeingDragged = null;
-        colorTypeBeingReplaced = null;
-        squareIdBeingReplaced = null;
-    }
+		// Reset variables if the move is not valid
+		colorTypeBeingDragged = null;
+		squareIdBeingDragged = null;
+		colorTypeBeingReplaced = null;
+		squareIdBeingReplaced = null;
+	}
 }
 
 function handleTouchCancel(e) {
 
-    // Reset variables
-    colorTypeBeingDragged = null;
-    squareIdBeingDragged = null;
-    colorTypeBeingReplaced = null;
-    squareIdBeingReplaced = null;
+	// Reset variables
+	colorTypeBeingDragged = null;
+	squareIdBeingDragged = null;
+	colorTypeBeingReplaced = null;
+	squareIdBeingReplaced = null;
 }
 // dragStart identifies the square chosen by the player's click
 function dragStart(e) {
@@ -250,7 +252,7 @@ function dragDrop(e) {
 		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
 		// all.sort();
 		updateScore(all.size * 10)
-		
+
 		moveDown();
 
 	} else {
@@ -367,7 +369,7 @@ function animateFill(element, color) {
 		setTimeout(() => {
 			element.classList.remove('fill');
 			resolve();
-		}, 200); // Match the duration of the CSS animation
+		}, 100); // Match the duration of the CSS animation
 	});
 }
 
@@ -406,6 +408,15 @@ async function moveDown() {
 	}
 
 	findCascadeMatches();
+
+	const availIndexes = anyAvailableMoves();
+	if (availIndexes.length < 3) {
+		console.log("should be no moves left");
+	} else {
+		console.log(availIndexes)
+	}
+
+
 }
 
 // findCascadeMatches
@@ -486,6 +497,160 @@ function findCascadeMatches() {
 
 }
 
+// anyAvailableMoves runs through the board from top to bottom
+// returns true on first match found, returns false if gets to end and no matches found
+function anyAvailableMoves() {
+	console.log("checking moves");
+	// starting at the top
+	for (let currIndex = 0; currIndex < squares.length; currIndex++) {
+		const rowStart = Math.floor(currIndex / width) * width; // greater than 0
+		const rowEnd = rowStart + width - 1;
+		const prevRowStart = rowStart - width > 0 ? rowStart - width : null;
+		const prevRowEnd = rowEnd > width - 1 ? rowEnd - width : null;
+		const nextRowStart = rowStart + width > squares.length + 1 ? null : rowStart + width;
+		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
+
+
+		const currentSquare = squares[currIndex];
+
+		// two in a rows
+		const rightIndex = currIndex + 1;
+		const rightSquare = squares[rightIndex];
+		// horizontally
+		if (rightIndex <= rowEnd && rightSquare && currentSquare.dataset.type === rightSquare.dataset.type) {
+			// diagonal square upper left
+			console.log("horizontal two in a rows")
+			const upperLeftIndex = currIndex - width - 1;
+			const upperLeftSquare = squares[upperLeftIndex];
+			if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
+				return [upperLeftIndex, currIndex, rightIndex];
+			}
+			// diag square lower left
+			const lowerLeftIndex = currIndex + width - 1;
+			const lowerLeftSquare = squares[lowerLeftIndex];
+			if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
+				return [lowerLeftIndex, currIndex, rightIndex];
+			}
+			// diag square upper right
+			const upperRightIndex = currIndex + 1 - width + 1;
+			const upperRightSquare = squares[upperRightIndex];
+			if (upperRightIndex <= prevRowEnd && upperRightSquare && upperRightSquare.dataset.type === rightSquare.dataset.type) {
+				return [currIndex, rightIndex, upperRightIndex];
+			}
+			// diag square lower right
+			const lowerRightIndex = currIndex + 1 + width + 1;
+			const lowerRightSquare = squares[lowerRightIndex];
+			if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === rightSquare.dataset.type) {
+				return [currIndex, rightIndex, lowerRightIndex];
+			}
+			// far left in line
+			const farLeftIndex = currIndex - 2;
+			const farLeftSquare = squares[farLeftIndex];
+			if (farLeftIndex >= rowStart && farLeftSquare.dataset.type === currentSquare.dataset.type) {
+				return [farLeftIndex, currIndex, rightIndex];
+			}
+
+			// far right in line
+			const farRightIndex = currIndex + 3;
+			const farRightSquare = squares[farRightIndex];
+			if (farRightIndex <= rowEnd && farRightSquare.dataset.type === currentSquare.dataset.type) {
+				return [currIndex, rightIndex, farRightIndex];
+			}
+		}
+		// two in a row vertically
+		// since starting at top only have see if below matches
+		if (currIndex < squares.length - width) {
+			console.log("vertical two in a rows")
+			const lowerIndex = currIndex + width;
+			const lowerSquare = squares[lowerIndex];
+			if (lowerSquare && lowerSquare.dataset.type === currentSquare.dataset.type) {
+				// upper left
+				const upperLeftIndex = currIndex - width - 1;
+				const upperLeftSquare = squares[upperLeftIndex];
+				if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
+					return [upperLeftIndex, currIndex, lowerIndex];
+				}
+				// upper right
+				const upperRightIndex = currIndex - width + 1;
+				const upperRightSquare = squares[upperRightIndex];
+				if (upperRightIndex <= prevRowEnd && upperRightSquare && upperRightSquare.dataset.type === currentSquare.dataset.type) {
+					return [upperRightIndex, currIndex, lowerIndex];
+				}
+				// lower left
+				const lowerLeftIndex = currIndex + width + width - 1;
+				const lowerLeftSquare = squares[lowerLeftIndex];
+				if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === lowerSquare.dataset.type) {
+					return [currIndex, lowerIndex, lowerLeftIndex];
+				}
+				// lower right
+				const lowerRightIndex = currIndex + width + width + 1;
+				const lowerRightSquare = squares[lowerRightIndex];
+				if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
+					return [currIndex, lowerIndex, lowerRightIndex];
+				}
+
+				// far top
+				const farUpperIndex = currIndex - width - width;
+				const farUpperSquare = squares[farUpperIndex];
+				if (farUpperIndex > 0 && farUpperSquare && farUpperSquare.dataset.type === currentSquare.dataset.type) {
+					return [farUpperIndex, currIndex, lowerIndex];
+				}
+
+				// far bottom
+				const farLowerIndex = currIndex + (width * 3);
+				const farLowerSquare = squares[farLowerIndex];
+				if (farLowerIndex < squares.length && farLowerSquare && farLowerSquare.dataset.type === currentSquare.dataset.type) {
+					return [currIndex, lowerIndex, farLowerIndex];
+				}
+			}
+		}
+
+		// 
+		// if x y x, then find x in middle above or below
+		console.log("xyx")
+		// horz checks
+		const endIndex = currIndex + 2;
+		const endSquare = squares[endIndex];
+		if (endIndex <= rowEnd && endSquare && endSquare.dataset.type === currentSquare.dataset.type) {
+			// middle above
+			const midAboveIndex = currIndex - width + 1;
+			const midAboveSquare = squares[midAboveIndex];
+			if (midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && midAboveSquare.dataset.type === currentSquare.dataset.type) {
+				return [currIndex, midAboveIndex, endIndex];
+			}
+			// middle below
+			const midBelowIndex = currIndex + width + 1;
+			const midBelowSquare = squares[midBelowIndex];
+			if (midBelowIndex <= nextRowEnd && midBelowIndex >= nextRowStart && midBelowSquare.dataset.type === currentSquare.dataset.type) {
+				return [currIndex, midBelowIndex, endIndex];
+			}
+		}
+
+
+		// vert checks
+		const belowIndex = currIndex + width + width;
+		const belowSquare = squares[belowIndex];
+		if (belowIndex < squares.length && belowSquare && belowSquare.dataset.type === currIndex.dataset.type) {
+			// left middle
+			const leftMiddleIndex = currIndex + width -1 ;
+			const leftMiddleSquare = squares[leftMiddleIndex]
+			if (leftMiddleIndex >= nextRowStart && leftMiddleIndex <= nextRowEnd && leftMiddleSquare.dataset.type === currentSquare.dataset.type) {
+				return [currIndex, leftMiddleIndex, belowIndex];
+			}
+			// right middle
+			const rightMiddleIndex = currIndex + width + 1;
+			const rightMiddleSquare = squares[rightMiddleIndex];
+			if (rightMiddleIndex >= nextRowStart && rightMiddleIndex <= nextRowEnd && rightMiddleSquare.dataset.type === currentSquare.dataset.type) {
+				return [currIndex, rightMiddleIndex, belowIndex];
+			}
+		}
+	}
+	// if no cases above have matched
+	return [];
+
+}
+
+
 
 // attach resetGame function to reset button
 document.getElementById('reset-button').addEventListener('click', resetGame);
@@ -502,25 +667,25 @@ document.getElementById('how-to-button').addEventListener('click', showRulesModa
 
 // Function to show the rules modal
 function showRulesModal() {
-    const modal = document.getElementById('how-to-modal');
-    modal.style.display = 'block';
+	const modal = document.getElementById('how-to-modal');
+	modal.style.display = 'block';
 }
 
 // Function to hide the rules modal
 function hideRulesModal() {
-    const modal = document.getElementById('how-to-modal');
-    modal.style.display = 'none';
+	const modal = document.getElementById('how-to-modal');
+	modal.style.display = 'none';
 }
 
 // Event listener for the close button
 document.querySelector('.close-button').addEventListener('click', hideRulesModal);
 
 // Event listener to close the modal when clicking outside of it
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('rules-modal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
+window.addEventListener('click', function (event) {
+	const modal = document.getElementById('rules-modal');
+	if (event.target === modal) {
+		modal.style.display = 'none';
+	}
 });
 
 createBoard();
