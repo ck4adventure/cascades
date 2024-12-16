@@ -32,8 +32,7 @@ h1 {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	margin: 8px;
-	margin-top: 20px;
+	margin: 10px;
 	font-size: x-large;
 }
 
@@ -75,7 +74,7 @@ h1 {
 	grid-template-columns: repeat(8, 1fr);
 	grid-template-rows: repeat(8, 1fr);
 	gap: 4px;
-	margin-top: 20px;
+	margin-top: 10px;
 }
 
 #tooltip {
@@ -92,7 +91,7 @@ h1 {
 #credits-box {
 	display: flex;
 	justify-content: space-between;
-	padding-top: 20px;
+	padding-top: 30px;
 }
 
 #credits-box>div {
