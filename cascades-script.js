@@ -29,8 +29,8 @@ function createBoard() {
 		square.id = i;
 		// add to it the tile class
 		square.classList.add('tile');
-		      // Set the inner text to the index number
-    square.innerText = i;
+		// Set the inner text to the index number
+		square.innerText = i;
 
 		// allow it to be draggable
 		square.setAttribute('draggable', true);
@@ -500,53 +500,60 @@ function findCascadeMatches() {
 // anyAvailableMoves runs through the board from top to bottom
 // returns true on first match found, returns false if gets to end and no matches found
 function anyAvailableMoves() {
-	console.log("checking moves");
 	// starting at the top
 	for (let currIndex = 0; currIndex < squares.length; currIndex++) {
-		const rowStart = Math.floor(currIndex / width) * width; // greater than 0
-		const rowEnd = rowStart + width - 1;
-		const prevRowStart = rowStart - width > 0 ? rowStart - width : null;
+		const rowStart = Math.floor(currIndex / width) * width; // gre 0
+		const rowEnd = rowStart + (width - 1);
+		
+		const prevRowStart = rowStart - width >= 0 ? rowStart - width : null;
 		const prevRowEnd = rowEnd > width - 1 ? rowEnd - width : null;
-		const nextRowStart = rowStart + width > squares.length + 1 ? null : rowStart + width;
+		
+		const nextRowStart = rowStart + width > squares.length - 1 ? null : rowStart + width;
 		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
 
-
+		console.log("prev row start/end: ", prevRowStart, prevRowEnd);
+		console.log("nextRow start/end", nextRowStart, nextRowEnd);
 		const currentSquare = squares[currIndex];
 
 		// two in a rows
 		const rightIndex = currIndex + 1;
 		const rightSquare = squares[rightIndex];
 		// horizontally
-		if (rightIndex <= rowEnd && rightSquare && currentSquare.dataset.type === rightSquare.dataset.type) {
+		if (rightIndex <= rowEnd && currentSquare.dataset.type === rightSquare.dataset.type) {
 			// diagonal square upper left
-			console.log("horizontal two in a rows")
 			const upperLeftIndex = currIndex - width - 1;
 			const upperLeftSquare = squares[upperLeftIndex];
 			if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("upperLeftIndex");
 				return [upperLeftIndex, currIndex, rightIndex];
 			}
 			// diag square lower left
 			const lowerLeftIndex = currIndex + width - 1;
 			const lowerLeftSquare = squares[lowerLeftIndex];
 			if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("lowerLeftIndex");	
 				return [lowerLeftIndex, currIndex, rightIndex];
 			}
 			// diag square upper right
-			const upperRightIndex = currIndex + 1 - width + 1;
+			const upperRightIndex = rightIndex - width + 1;
 			const upperRightSquare = squares[upperRightIndex];
 			if (upperRightIndex <= prevRowEnd && upperRightSquare && upperRightSquare.dataset.type === rightSquare.dataset.type) {
+				console.log("upperRightIndex");
 				return [currIndex, rightIndex, upperRightIndex];
 			}
 			// diag square lower right
 			const lowerRightIndex = currIndex + 1 + width + 1;
 			const lowerRightSquare = squares[lowerRightIndex];
+			console.log("next row end ", nextRowEnd)
 			if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === rightSquare.dataset.type) {
+				console.log("lowerRightIndex");
 				return [currIndex, rightIndex, lowerRightIndex];
 			}
 			// far left in line
 			const farLeftIndex = currIndex - 2;
 			const farLeftSquare = squares[farLeftIndex];
 			if (farLeftIndex >= rowStart && farLeftSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("farLeftIndex");
 				return [farLeftIndex, currIndex, rightIndex];
 			}
 
@@ -554,45 +561,54 @@ function anyAvailableMoves() {
 			const farRightIndex = currIndex + 3;
 			const farRightSquare = squares[farRightIndex];
 			if (farRightIndex <= rowEnd && farRightSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("farRightIndex");
 				return [currIndex, rightIndex, farRightIndex];
 			}
 		}
+
+
+
 		// two in a row vertically
 		// since starting at top only have see if below matches
 		if (currIndex < squares.length - width) {
-			console.log("vertical two in a rows")
 			const lowerIndex = currIndex + width;
 			const lowerSquare = squares[lowerIndex];
-			if (lowerSquare && lowerSquare.dataset.type === currentSquare.dataset.type) {
+			// console.log("current index, lower square: ", currIndex, lowerIndex);
+			if (lowerSquare.dataset.type === currentSquare.dataset.type) {
 				// upper left
 				const upperLeftIndex = currIndex - width - 1;
 				const upperLeftSquare = squares[upperLeftIndex];
 				if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
+					console.log("upperLeftIndex");
 					return [upperLeftIndex, currIndex, lowerIndex];
 				}
 				// upper right
 				const upperRightIndex = currIndex - width + 1;
 				const upperRightSquare = squares[upperRightIndex];
-				if (upperRightIndex <= prevRowEnd && upperRightSquare && upperRightSquare.dataset.type === currentSquare.dataset.type) {
+				if (upperRightIndex <= prevRowEnd && upperRightIndex >= prevRowStart && upperRightSquare.dataset.type === currentSquare.dataset.type) {
+					console.log("upperRightIndex");
 					return [upperRightIndex, currIndex, lowerIndex];
 				}
 				// lower left
 				const lowerLeftIndex = currIndex + width + width - 1;
 				const lowerLeftSquare = squares[lowerLeftIndex];
-				if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === lowerSquare.dataset.type) {
+				if (lowerLeftIndex >= nextRowStart + width && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
+					console.log("lowerLeftIndex");
 					return [currIndex, lowerIndex, lowerLeftIndex];
 				}
 				// lower right
 				const lowerRightIndex = currIndex + width + width + 1;
 				const lowerRightSquare = squares[lowerRightIndex];
-				if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
+				if (lowerRightIndex < nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
+					console.log("lowerRightIndex");
 					return [currIndex, lowerIndex, lowerRightIndex];
 				}
 
 				// far top
 				const farUpperIndex = currIndex - width - width;
 				const farUpperSquare = squares[farUpperIndex];
-				if (farUpperIndex > 0 && farUpperSquare && farUpperSquare.dataset.type === currentSquare.dataset.type) {
+				if (farUpperIndex >= 0 && farUpperSquare && farUpperSquare.dataset.type === currentSquare.dataset.type) {
+					console.log("farUpperIndex");
 					return [farUpperIndex, currIndex, lowerIndex];
 				}
 
@@ -600,6 +616,7 @@ function anyAvailableMoves() {
 				const farLowerIndex = currIndex + (width * 3);
 				const farLowerSquare = squares[farLowerIndex];
 				if (farLowerIndex < squares.length && farLowerSquare && farLowerSquare.dataset.type === currentSquare.dataset.type) {
+					console.log("farLowerIndex");
 					return [currIndex, lowerIndex, farLowerIndex];
 				}
 			}
@@ -607,7 +624,7 @@ function anyAvailableMoves() {
 
 		// 
 		// if x y x, then find x in middle above or below
-		console.log("xyx")
+
 		// horz checks
 		const endIndex = currIndex + 2;
 		const endSquare = squares[endIndex];
@@ -616,34 +633,39 @@ function anyAvailableMoves() {
 			const midAboveIndex = currIndex - width + 1;
 			const midAboveSquare = squares[midAboveIndex];
 			if (midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && midAboveSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("middleAbove");
 				return [currIndex, midAboveIndex, endIndex];
 			}
 			// middle below
 			const midBelowIndex = currIndex + width + 1;
 			const midBelowSquare = squares[midBelowIndex];
 			if (midBelowIndex <= nextRowEnd && midBelowIndex >= nextRowStart && midBelowSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("midBelow")
 				return [currIndex, midBelowIndex, endIndex];
 			}
 		}
 
-
 		// vert checks
 		const belowIndex = currIndex + width + width;
 		const belowSquare = squares[belowIndex];
-		if (belowIndex < squares.length && belowSquare && belowSquare.dataset.type === currIndex.dataset.type) {
+
+		if (belowIndex < squares.length && belowSquare && belowSquare.dataset.type === currentSquare.dataset.type) {
 			// left middle
-			const leftMiddleIndex = currIndex + width -1 ;
-			const leftMiddleSquare = squares[leftMiddleIndex]
+			const leftMiddleIndex = currIndex + width - 1;
+			const leftMiddleSquare = squares[leftMiddleIndex];
 			if (leftMiddleIndex >= nextRowStart && leftMiddleIndex <= nextRowEnd && leftMiddleSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("leftMiddle");
 				return [currIndex, leftMiddleIndex, belowIndex];
 			}
 			// right middle
 			const rightMiddleIndex = currIndex + width + 1;
 			const rightMiddleSquare = squares[rightMiddleIndex];
 			if (rightMiddleIndex >= nextRowStart && rightMiddleIndex <= nextRowEnd && rightMiddleSquare.dataset.type === currentSquare.dataset.type) {
+				console.log("rightMiddle")
 				return [currIndex, rightMiddleIndex, belowIndex];
 			}
 		}
+
 	}
 	// if no cases above have matched
 	return [];
