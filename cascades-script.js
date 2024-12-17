@@ -4,7 +4,7 @@ const width = 8;
 const height = 8;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
-let colors = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+let colors = ['1', '2', '3', '4', '5', '6', '7']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
 let currentScore = 0;
@@ -30,7 +30,7 @@ function createBoard() {
 		// add to it the tile class
 		square.classList.add('tile');
 		// Set the inner text to the index number
-		square.innerText = i;
+		// square.innerText = i;
 
 		// allow it to be draggable
 		square.setAttribute('draggable', true);
@@ -505,14 +505,14 @@ function anyAvailableMoves() {
 		const rowStart = Math.floor(currIndex / width) * width; // gre 0
 		const rowEnd = rowStart + (width - 1);
 		
-		const prevRowStart = rowStart - width >= 0 ? rowStart - width : null;
-		const prevRowEnd = rowEnd > width - 1 ? rowEnd - width : null;
+		const prevRowStart = rowStart - width;
+		const prevRowEnd = rowEnd - width;
 		
 		const nextRowStart = rowStart + width > squares.length - 1 ? null : rowStart + width;
 		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
 
-		console.log("prev row start/end: ", prevRowStart, prevRowEnd);
-		console.log("nextRow start/end", nextRowStart, nextRowEnd);
+		// console.log("prev row start/end: ", prevRowStart, prevRowEnd);
+		// console.log("nextRow start/end", nextRowStart, nextRowEnd);
 		const currentSquare = squares[currIndex];
 
 		// two in a rows
@@ -544,7 +544,7 @@ function anyAvailableMoves() {
 			// diag square lower right
 			const lowerRightIndex = currIndex + 1 + width + 1;
 			const lowerRightSquare = squares[lowerRightIndex];
-			console.log("next row end ", nextRowEnd)
+			// console.log("next row end ", nextRowEnd)
 			if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === rightSquare.dataset.type) {
 				console.log("lowerRightIndex");
 				return [currIndex, rightIndex, lowerRightIndex];
@@ -585,7 +585,7 @@ function anyAvailableMoves() {
 				// upper right
 				const upperRightIndex = currIndex - width + 1;
 				const upperRightSquare = squares[upperRightIndex];
-				if (upperRightIndex <= prevRowEnd && upperRightIndex >= prevRowStart && upperRightSquare.dataset.type === currentSquare.dataset.type) {
+				if (upperRightSquare && upperRightIndex <= prevRowEnd && upperRightIndex >= prevRowStart && upperRightSquare.dataset.type === currentSquare.dataset.type) {
 					console.log("upperRightIndex");
 					return [upperRightIndex, currIndex, lowerIndex];
 				}
@@ -599,7 +599,7 @@ function anyAvailableMoves() {
 				// lower right
 				const lowerRightIndex = currIndex + width + width + 1;
 				const lowerRightSquare = squares[lowerRightIndex];
-				if (lowerRightIndex < nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
+				if (lowerRightIndex <= nextRowEnd + width && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
 					console.log("lowerRightIndex");
 					return [currIndex, lowerIndex, lowerRightIndex];
 				}
@@ -632,7 +632,7 @@ function anyAvailableMoves() {
 			// middle above
 			const midAboveIndex = currIndex - width + 1;
 			const midAboveSquare = squares[midAboveIndex];
-			if (midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && midAboveSquare.dataset.type === currentSquare.dataset.type) {
+			if (midAboveSquare && midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && midAboveSquare.dataset.type === currentSquare.dataset.type) {
 				console.log("middleAbove");
 				return [currIndex, midAboveIndex, endIndex];
 			}

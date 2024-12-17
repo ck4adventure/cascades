@@ -123,8 +123,9 @@ a {
 	text-align: center;
 	width: 100%;
 	border-radius: 5px;
-	padding-top: 40%;
-	padding-bottom: 40%;
+	padding-top: 100%;
+	/* padding-top: 40%;
+	padding-bottom: 40%; */
 	background-repeat: no-repeat;
 	background-position: top;
 	background-size: 100% 100%;
@@ -137,7 +138,7 @@ a {
 
 /* data type will be used to convey different colored blocks */
 .tile[data-type="1"] {
-	background-color: red;
+	background-color: lightcoral;
 }
 
 .tile[data-type="2"] {
@@ -145,27 +146,27 @@ a {
 }
 
 .tile[data-type="3"] {
-	background-color: yellow;
+	background-color: lemonchiffon;
 }
 
 .tile[data-type="4"] {
-	background-color: green;
+	background-color: lightgreen;
 }
 
 .tile[data-type="5"] {
-	background-color: blue;
+	background-color: lightskyblue;
 }
 
 .tile[data-type="6"] {
-	background-color: purple;
+	background-color: orchid;
 }
 
 .tile[data-type="7"] {
-	background-color: deeppink;
+	background-color: pink;
 }
 
 .tile[data-type="8"] {
-	background-color: gray;
+	background-color: lightslategray;
 }
 
 .tile[data-type="9"] {
