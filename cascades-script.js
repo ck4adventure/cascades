@@ -8,7 +8,7 @@ let colors = ['1', '2', '3', '4', '5', '6', '7']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
 let currentScore = 0;
-
+let dropSpeed = 200;
 function updateScore(points) {
 	currentScore += points;
 	document.getElementById('current-score').innerHTML = currentScore;
@@ -369,7 +369,7 @@ function animateFill(element, color) {
 		setTimeout(() => {
 			element.classList.remove('fill');
 			resolve();
-		}, 200); // Match the duration of the CSS animation
+		}, dropSpeed); // Match the duration of the CSS animation
 	});
 }
 
@@ -684,6 +684,20 @@ function resetGame() {
 	updateScore(0);
 	gameBoard.innerHTML = ''; // Clear the board display
 	createBoard();
+}
+
+var slider = document.getElementById("myRange");
+// var output = document.getElementById("demo");
+// output.innerHTML = slider.value; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  // output.innerHTML = this.value;
+	// change animate value
+	const reversedValue = slider.max - (this.value - slider.min);
+
+	dropSpeed = reversedValue;
+
 }
 
 document.getElementById('how-to-button').addEventListener('click', showRulesModal);
