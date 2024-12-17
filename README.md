@@ -1,14 +1,13 @@
 # Cascades
 Implementation of a basic match 3 game where the tiles fall down, creating potentially more matches in a cascade.  
 
-### Current Status
-Working cascade feature.
-
 ### Up Next
-- Debug matching logic on first switch for both mobile and desktop
+- refactor into a class based program
+- add testing for board logic functions
+- debug matching logic on first switch for both mobile and desktop
 
 ### Eventual Features
-- refactor into a class based program
+
 - light and dark mode
 - custom height and width
 - custom number of color types
@@ -18,6 +17,7 @@ Working cascade feature.
 #### v0.4 in progress
 - alerts when no moves left
 - lighter game board colors
+- cascade speed control slider
 
 #### v0.3 11/30/24
 - adds basic 10pts per square game scoring
