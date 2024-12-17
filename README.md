@@ -5,7 +5,6 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 Working cascade feature.
 
 ### Up Next
-- Check for no moves left on board.
 - Debug matching logic on first switch for both mobile and desktop
 
 ### Eventual Features
@@ -16,6 +15,10 @@ Working cascade feature.
 
 
 ## Version History
+#### v0.4 in progress
+- alerts when no moves left
+- lighter game board colors
+
 #### v0.3 11/30/24
 - adds basic 10pts per square game scoring
 - resetting board resets the score
