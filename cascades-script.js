@@ -486,28 +486,6 @@ function findCascadeMatches() {
 
 }
 
-// isAvailableMove checks for available moves within the grid
-// returns true or false
-function isAvailableMove() {
-// board pattern
-//  0  1  2  3  4  5  6  7
-//  8  9 10 11 12 13 14 15
-// 16 17 18 19 20 21 22 23
-// 24 25 26 27 28 29 30 31 ...
-
-// patterns:
-// two in a row vert or horz
-// then check +2 above and below for vert
-// plus kitty corner at each of the four corners
-// +2 right and left for horz, plus each of the four corners
-//
-// or, color - non - color vert or horz
-// which just needs the middle above below if horz
-// middle left or right if vert
-
-// start at bottom or top?
-}
-
 
 // attach resetGame function to reset button
 document.getElementById('reset-button').addEventListener('click', resetGame);
