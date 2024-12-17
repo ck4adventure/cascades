@@ -14,7 +14,7 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 
 
 ## Version History
-#### v0.4 in progress
+#### v0.4 12/17/24
 - alerts when no moves left
 - lighter game board colors
 - cascade speed control slider
