@@ -4,7 +4,7 @@ const width = 8;
 const height = 8;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
-let colors = ['1', '2', '3', '4', '5', '6', '7']
+let colors = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
 let currentScore = 0;
@@ -411,13 +411,35 @@ async function moveDown() {
 
 	const availIndexes = anyAvailableMoves();
 	if (availIndexes.length < 3) {
+		console.log("no moves left")
 		setTimeout(() => {
-			alert("No More Moves");
+			noMovesAlert();
 		}, 3000);
 		
 	} 
 
 
+}
+
+function noMovesAlert() {
+	const dialog = document.getElementById('no-moves-dialog');
+  const resetBtn = document.getElementById('resetBtn');
+  const okBtn = document.getElementById('okBtn');
+
+  // Show the dialog
+  dialog.showModal();
+
+  resetBtn.addEventListener('click', () => {
+    // Handle confirmation
+
+    dialog.close();
+		resetGame();
+  });
+
+  okBtn.addEventListener('click', () => {
+    // Handle cancellation
+    dialog.close();
+  });
 }
 
 // findCascadeMatches

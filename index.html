@@ -18,27 +18,27 @@
 
 		</div>
 		<div id="controls-box">
-		<div id="reset-box">
-			<button id="reset-button">Reset Board</button>
+			<div id="reset-box">
+				<button id="reset-button">Reset Board</button>
+			</div>
+			<div id="speed-control-box">
+				<div>Cascade Speed</div>
+				<input type="range" min="100" max="300" value="200" class="slider" id="myRange">
+			</div>
 		</div>
-		<div id="speed-control-box">
-			<div>Cascade Speed</div>
-			  <input type="range" min="100" max="300" value="200" class="slider" id="myRange">
-		</div>
-		</div>
-		
+
 		<div id="game-board"></div>
-		
+
 		<div id="tooltip"
 			style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 5px; border-radius: 5px;">
 		</div>
-		
+
 		<div id="credits-box">
 			<div id="link-box"><a href="https://github.com/ck4adventure/cascades">Github</a></div>
 			<div id="version-box">v0.4</div>
 			<div id="how-to-button-box"><button id="how-to-button">How to Play</button></div>
 		</div>
-		
+
 		<div id="how-to-modal" class="modal">
 			<div class="modal-content">
 				<span class="close-button">&times;</span>
@@ -49,6 +49,11 @@
 					continue cascading.</p>
 			</div>
 		</div>
+		<dialog id="no-moves-dialog">
+			<p>No More Moves.</p>
+			<button id="resetBtn">New Game</button>
+			<button id="okBtn">Ok</button>
+		</dialog>
 	</div>
 </body>
 <script src="cascades-script.js"></script>
