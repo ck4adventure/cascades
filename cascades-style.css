@@ -164,7 +164,7 @@ a {
 }
 
 .tile[data-type="3"] {
-	background-color: lemonchiffon;
+	background-color: lightslategray;
 }
 
 .tile[data-type="4"] {
@@ -184,7 +184,7 @@ a {
 }
 
 .tile[data-type="8"] {
-	background-color: lightslategray;
+	background-color: lemonchiffon;
 }
 
 .tile[data-type="9"] {
