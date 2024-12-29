@@ -413,33 +413,12 @@ async function moveDown() {
 	if (availIndexes.length < 3) {
 		console.log("no moves left")
 		setTimeout(() => {
-			noMovesAlert();
-		}, 3000);
-		
-	} 
+			showNoMovesModal();
+		}, 500);
+
+	}
 
 
-}
-
-function noMovesAlert() {
-	const dialog = document.getElementById('no-moves-dialog');
-  const resetBtn = document.getElementById('resetBtn');
-  const okBtn = document.getElementById('okBtn');
-
-  // Show the dialog
-  dialog.showModal();
-
-  resetBtn.addEventListener('click', () => {
-    // Handle confirmation
-
-    dialog.close();
-		resetGame();
-  });
-
-  okBtn.addEventListener('click', () => {
-    // Handle cancellation
-    dialog.close();
-  });
 }
 
 // findCascadeMatches
@@ -527,10 +506,10 @@ function anyAvailableMoves() {
 	for (let currIndex = 0; currIndex < squares.length; currIndex++) {
 		const rowStart = Math.floor(currIndex / width) * width; // gre 0
 		const rowEnd = rowStart + (width - 1);
-		
+
 		const prevRowStart = rowStart - width;
 		const prevRowEnd = rowEnd - width;
-		
+
 		const nextRowStart = rowStart + width > squares.length - 1 ? null : rowStart + width;
 		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
 
@@ -695,8 +674,6 @@ function anyAvailableMoves() {
 
 }
 
-
-
 // attach resetGame function to reset button
 document.getElementById('reset-button').addEventListener('click', resetGame);
 
@@ -713,14 +690,26 @@ var slider = document.getElementById("myRange");
 // output.innerHTML = slider.value; // Display the default slider value
 
 // Update the current slider value (each time you drag the slider handle)
-slider.oninput = function() {
-  // output.innerHTML = this.value;
+slider.oninput = function () {
+	// output.innerHTML = this.value;
 	// change animate value
 	const reversedValue = slider.max - (this.value - slider.min);
 
 	dropSpeed = reversedValue;
 
 }
+
+function showNoMovesModal() {
+	const modal = document.getElementById('no-moves-modal');
+	modal.style.display = 'block';
+}
+
+function hideNoMovesModal() {
+	const modal = document.getElementById('no-moves-modal');
+	modal.style.display = 'none';
+}
+
+
 
 document.getElementById('how-to-button').addEventListener('click', showRulesModal);
 
@@ -730,6 +719,12 @@ function showRulesModal() {
 	modal.style.display = 'block';
 }
 
+document.getElementById('okBtn').addEventListener('click', hideNoMovesModal);
+document.getElementById('resetBtn').addEventListener('click', () => {
+	hideNoMovesModal();
+	resetGame();
+});
+
 // Function to hide the rules modal
 function hideRulesModal() {
 	const modal = document.getElementById('how-to-modal');
@@ -737,8 +732,8 @@ function hideRulesModal() {
 }
 
 // Event listener for the close button
-document.querySelector('.close-button').addEventListener('click', hideRulesModal);
-
+document.getElementById('close-button').addEventListener('click', hideRulesModal);
+document.getElementById('x-button').addEventListener('click', hideRulesModal);
 // Event listener to close the modal when clicking outside of it
 window.addEventListener('click', function (event) {
 	const modal = document.getElementById('rules-modal');
