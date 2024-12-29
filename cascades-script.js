@@ -4,7 +4,7 @@ const width = 8;
 const height = 8;
 const gameBoard = document.getElementById("game-board");
 let squares = [];
-let colors = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+let colors = ['1', '2', '3', '4', '5', '6', '7']
 let colorTypeBeingDragged, squareIdBeingDragged;
 let colorTypeBeingReplaced, squareIdBeingReplaced;
 let currentScore = 0;
