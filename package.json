@@ -1,0 +1,13 @@
+{
+  "name": "cascades",
+  "version": "0.5",
+  "description": "Implementation of a basic match 3 game where the tiles fall down, creating potentially more matches in a cascade.",
+  "main": "game.mjs",
+	"type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
