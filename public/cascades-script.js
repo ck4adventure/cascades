@@ -6,7 +6,7 @@ class CascadesGame {
 		this.height = 8;
 		this.gameBoard = document.getElementById("game-board");
 		this.squares = [];
-		this.colors = ['1', '2', '3', '4', '5', '6', '7']
+		this.colors = ['1', '2', '3', '4', '5', '6', '7'];
 		this.colorTypeBeingDragged;
 		this.squareIdBeingDragged;
 		this.colorTypeBeingReplaced;
