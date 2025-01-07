@@ -1,6 +1,6 @@
 /**
  * @jest-environment jsdom
- */
+*/
 
 import Board from './Board.js';
 import Tile from './Tile.js';
