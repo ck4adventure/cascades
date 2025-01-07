@@ -16,7 +16,11 @@ class Tile {
 	}
 
 	swapWith(otherTile) {
-		[this.type, otherTile.type] = [otherTile.type, this.type];
+		let tempColor = this.color;
+		this.color = otherTile.color;
+		this.element.dataset.type = otherTile.color;
+		otherTile.color = tempColor;
+		otherTile.element.dataset.type = tempColor;
 	}
 
 }
