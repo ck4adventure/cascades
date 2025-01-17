@@ -17,6 +17,7 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 #### v0.5 In Progress
 - alert modal now has button to reset game
 - switched yellow color for gray
+- add favicon
 
 #### v0.4 12/17/24
 - alerts when no moves left
