@@ -2,8 +2,6 @@
 Implementation of a basic match 3 game where the tiles fall down, creating potentially more matches in a cascade.  
 
 ### Up Next
-- refactor into a class based program
-- add testing for board logic functions
 - debug matching logic on first switch for both mobile and desktop
 
 ### Eventual Features
@@ -14,7 +12,14 @@ Implementation of a basic match 3 game where the tiles fall down, creating poten
 
 
 ## Version History
-#### v0.5 In Progress
+#### v0.6
+- refactored into Board and Game classes — Board holds pure grid logic, Game owns the DOM
+- Board extracted to its own ES module for testability
+- added 84-unit test suite covering all board logic (run with `npm test`)
+- fixed several bugs: drag-drop tile flicker, double-counted match scores, missing null check in available-moves scan
+- removed dead code and cleaned up commented-out debug lines
+
+#### v0.5
 - alert modal now has button to reset game
 - switched yellow color for gray
 - add favicon
