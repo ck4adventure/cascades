@@ -1,661 +1,433 @@
-const width = 8;
-const height = 8;
-const gameBoard = document.getElementById("game-board");
-let squares = [];
-let colors = ['1', '2', '3', '4', '5', '6', '7']
-let colorTypeBeingDragged, squareIdBeingDragged;
-let colorTypeBeingReplaced, squareIdBeingReplaced;
-let currentScore = 0;
-let dropSpeed = 200;
-function updateScore(points) {
-	currentScore += points;
-	document.getElementById('current-score').textContent = currentScore;
-}
-
-// board pattern
+// board pattern:
 //  0  1  2  3  4  5  6  7
 //  8  9 10 11 12 13 14 15
 // 16 17 18 19 20 21 22 23
 // 24 25 26 27 28 29 30 31 ...
 
-function createBoard() {
-	// iterate width by height to fill the board
-	for (let i = 0; i < width * height; i++) {
-		// create a new div
-		let square = document.createElement('div');
-		// give it an id
-		square.id = i;
-		// add to it the tile class
-		square.classList.add('tile');
-		// allow it to be draggable
-		square.setAttribute('draggable', true);
-		// pick a random color/dataset-type by indexing into the colors array
-		let randomColor;
-		do {
-			randomColor = getRandomColor();
-			square.dataset.type = randomColor;
-		} while (isThreeInARow(i, randomColor));
-
-		// add event listeners here for better efficiency
-		square.addEventListener('dragstart', dragStart);
-
-		// enter and over need to prevent default so we can allow drop target
-		square.addEventListener('dragenter', (e) => e.preventDefault());
-		square.addEventListener('dragover', dragOver);
-
-		square.addEventListener('drop', dragDrop);
-
-		// Add touch event listeners
-		square.addEventListener('touchstart', handleTouchStart);
-		square.addEventListener('touchmove', handleTouchMove);
-		square.addEventListener('touchend', handleTouchEnd);
-		square.addEventListener('touchcancel', handleTouchCancel);
-
-		gameBoard.appendChild(square);
-		squares.push(square);
-
-	}
-}
-
-function getRandomColor() {
-	return colors[Math.floor(Math.random() * colors.length)];
-}
-
-// isThreeInARow should check for 3 in a row horz and vert
-// returns true if the current index and color would form 3
-function isThreeInARow(index, colorType) {
-	// horizontal check can be simplified to only check what is to the left of it
-	// allows skipping the first two indexes on the left for each row
-	// index modulo width is a way to see where it sits within the row
-	if (index % width > 1 && squares[index - 2].dataset.type === colorType && squares[index - 1].dataset.type === colorType) {
-		return true;
+class Board {
+	constructor(width, height, colors) {
+		this.width = width;
+		this.height = height;
+		this.colors = colors;
+		this.grid = new Array(width * height).fill('null');
 	}
 
-	// vertical check can be simplified to only check above it
-	// allows skipping the first two rows of indexes for each column
-	if (index >= 2 * width && squares[index - width].dataset.type === colorType && squares[index - 2 * width].dataset.type === colorType) {
-		return true;
+	getRandomColor() {
+		return this.colors[Math.floor(Math.random() * this.colors.length)];
 	}
 
-	return false;
-}
-
-// mobile
-function handleTouchStart(e) {
-	colorTypeBeingDragged = this.dataset.type;
-	squareIdBeingDragged = parseInt(this.id);
-}
-
-function handleTouchMove(e) {
-	e.preventDefault(); // Prevent default scrolling behavior
-
-	const touch = e.touches[0];
-	const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-	if (element && element.classList.contains('tile')) {
-		colorTypeBeingReplaced = element.dataset.type;
-		squareIdBeingReplaced = parseInt(element.id);
-	}
-}
-
-async function handleTouchEnd(e) {
-	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
-		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		await animateFill(squares[squareIdBeingReplaced], colorTypeBeingDragged);
-
-		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
-		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
-
-		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
-		updateScore(all.size * 10);
-		moveDown();
-	} else {
-		colorTypeBeingDragged = null;
-		squareIdBeingDragged = null;
-		colorTypeBeingReplaced = null;
-		squareIdBeingReplaced = null;
-	}
-}
-
-function handleTouchCancel(e) {
-
-	// Reset variables
-	colorTypeBeingDragged = null;
-	squareIdBeingDragged = null;
-	colorTypeBeingReplaced = null;
-	squareIdBeingReplaced = null;
-}
-// dragStart identifies the square chosen by the player's click
-function dragStart(e) {
-	colorTypeBeingDragged = this.dataset.type;
-	squareIdBeingDragged = parseInt(this.id);
-}
-
-// dragOver needs to ensure a valid drop target
-function dragOver(e) {
-	colorTypeBeingReplaced = this.dataset.type;
-	squareIdBeingReplaced = parseInt(this.id);
-
-
-	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
-		e.preventDefault(e)
-	}
-}
-
-
-// makesThreeInARow checks around the index specified
-function makesThreeInARow(index, colorType) {
-	// Horizontal check
-	const rowStart = Math.floor(index / width) * width;
-	const rowEnd = rowStart + width;
-	let horizontalCount = 1;
-
-	// Check left
-	for (let i = index - 1; i >= rowStart && squares[i].dataset.type === colorType; i--) {
-		horizontalCount++;
-	}
-	// Check right
-	for (let i = index + 1; i < rowEnd && squares[i].dataset.type === colorType; i++) {
-		horizontalCount++;
-	}
-	if (horizontalCount >= 3) return true;
-
-	// Vertical check
-	let verticalCount = 1;
-
-	// Check up
-	for (let i = index - width; i >= 0 && squares[i].dataset.type === colorType; i -= width) {
-		verticalCount++;
-	}
-	// Check down
-	for (let i = index + width; i < width * height && squares[i].dataset.type === colorType; i += width) {
-		verticalCount++;
-	}
-	if (verticalCount >= 3) return true;
-
-	return false;
-}
-
-// drop fires only if valid drop target under mouse on end
-function dragDrop(e) {
-	colorTypeBeingReplaced = this.dataset.type;
-	squareIdBeingReplaced = parseInt(this.id);
-
-	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
-		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
-
-		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
-		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
-		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
-
-		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
-		updateScore(all.size * 10);
-
-		moveDown();
-	}
-}
-
-function isValidMove(squareIdBeingDragged, squareIdBeingReplaced) {
-	const draggedRow = Math.floor(squareIdBeingDragged / width);
-	const draggedCol = squareIdBeingDragged % width;
-
-	return (
-		(squareIdBeingReplaced === squareIdBeingDragged - 1 && draggedCol > 0) || // Left
-		(squareIdBeingReplaced === squareIdBeingDragged + 1 && draggedCol < width - 1) || // Right
-		(squareIdBeingReplaced === squareIdBeingDragged - width && draggedRow > 0) || // Up
-		(squareIdBeingReplaced === squareIdBeingDragged + width && draggedRow < height - 1) // Down
-	);
-}
-
-
-// removeMatchingTiles starts with squareIdBeingReplaced
-// it needs to look left, right, up, down to edges of board
-// all touching tiles to index of same type are taken off the board
-// and colorTypes need to shift downwards on the board
-function removeMatchingHorzTiles(squareID, type) {
-	// board pattern
-	//  0  1  2  3  4  5  6  7
-	//  8  9 10 11 12 13 14 15
-	// 16 17 18 19 20 21 22 23
-	// 24 25 26 27 28 29 30 31 ...
-
-
-	let horzMatchIDs = [squareID]
-	const leftMoves = squareID % width; // ie 11 % 8 = 3
-	const leftMostIndex = squareID - leftMoves; // 11 - 3 = 8
-	const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
-	const rightMostIndex = squareID + rightMoves; // 11 + 4 = 15
-
-	// left side starts with index and decrements until edge
-	// continue while colorType is same, adding ids to array
-	let left = squareID - 1;
-	while (left >= leftMostIndex && squares[left].dataset.type === type) {
-		horzMatchIDs.push(left);
-		left--;
+	// Only checks left and up — used during initialization to avoid initial matches
+	isThreeInARow(index, colorType) {
+		const { width, grid } = this;
+		if (index % width > 1 && grid[index - 2] === colorType && grid[index - 1] === colorType) return true;
+		if (index >= 2 * width && grid[index - width] === colorType && grid[index - 2 * width] === colorType) return true;
+		return false;
 	}
 
+	// Checks all directions — used to validate that a swap creates a match
+	makesThreeInARow(index, colorType) {
+		const { width, height, grid } = this;
+		const rowStart = Math.floor(index / width) * width;
+		const rowEnd = rowStart + width;
 
-	// right side starts with index and increment to edge
-	// continue while colorType is same, adding ids to array
-	let right = squareID + 1;
-	while (right <= rightMostIndex && squares[right].dataset.type === type) {
-		horzMatchIDs.push(right);
-		right++;
+		let h = 1;
+		for (let i = index - 1; i >= rowStart && grid[i] === colorType; i--) h++;
+		for (let i = index + 1; i < rowEnd && grid[i] === colorType; i++) h++;
+		if (h >= 3) return true;
+
+		let v = 1;
+		for (let i = index - width; i >= 0 && grid[i] === colorType; i -= width) v++;
+		for (let i = index + width; i < width * height && grid[i] === colorType; i += width) v++;
+		return v >= 3;
 	}
 
-	if (horzMatchIDs.length >= 3) {
-		horzMatchIDs.forEach(id => {
-			squares[id].dataset.type = "null";
-		})
-
-		return horzMatchIDs;
+	isValidMove(dragId, replaceId) {
+		const { width, height } = this;
+		const dragRow = Math.floor(dragId / width);
+		const dragCol = dragId % width;
+		return (
+			(replaceId === dragId - 1 && dragCol > 0) ||
+			(replaceId === dragId + 1 && dragCol < width - 1) ||
+			(replaceId === dragId - width && dragRow > 0) ||
+			(replaceId === dragId + width && dragRow < height - 1)
+		);
 	}
 
-	return [];
+	removeMatchingHorzTiles(squareID, type) {
+		const { width, grid } = this;
+		const leftMostIndex = squareID - (squareID % width);
+		const rightMostIndex = squareID + (width - (squareID % width) - 1);
 
-}
+		const ids = [squareID];
+		for (let l = squareID - 1; l >= leftMostIndex && grid[l] === type; l--) ids.push(l);
+		for (let r = squareID + 1; r <= rightMostIndex && grid[r] === type; r++) ids.push(r);
 
-function removeMatchingVertTiles(squareID, type) {
-	// board pattern
-	//  0  1  2  3  4  5  6  7
-	//  8  9 10 11 12 13 14 15
-	// 16 17 18 19 20 21 22 23
-	// 24 25 26 27 28 29 30 31 ...
-
-
-	// top side starts with index, decrementing by width until top
-	// continue while colorType is same, adding ids to array
-	let vertMatchIDs = [squareID];
-	let up = squareID - width;
-	while (up >= 0 && squares[up].dataset.type === type) {
-		vertMatchIDs.push(up);
-		up -= width;
-	}
-	// bottom side starts with index, incrementing by width until bottom row
-	// continue while colorType is same, adding ids to array
-
-	// once all touching ids that match the colorType are found
-	// delete them all at once, leaving gaps on the board 
-	// null square lets background color show through
-	let down = squareID + width;
-	while (down < squares.length && squares[down].dataset.type === type) {
-		vertMatchIDs.push(down);
-		down += width;
+		if (ids.length >= 3) {
+			ids.forEach(id => { grid[id] = 'null'; });
+			return ids;
+		}
+		return [];
 	}
 
+	removeMatchingVertTiles(squareID, type) {
+		const { width, grid } = this;
+		const ids = [squareID];
+		for (let u = squareID - width; u >= 0 && grid[u] === type; u -= width) ids.push(u);
+		for (let d = squareID + width; d < grid.length && grid[d] === type; d += width) ids.push(d);
 
-	if (vertMatchIDs.length >= 3) {
-		vertMatchIDs.forEach(id => {
-			squares[id].dataset.type = "null";
-		})
-		return vertMatchIDs;
+		if (ids.length >= 3) {
+			ids.forEach(id => { grid[id] = 'null'; });
+			return ids;
+		}
+		return [];
 	}
 
-	return [];
-}
+	// Finds all cascade matches, clears them in grid, returns Set of matched IDs
+	findCascadeMatches() {
+		const { width, grid } = this;
+		const matched = new Set();
 
-// animate fill should make things wait while animation runs
-function animateFill(element, color) {
-	return new Promise((resolve) => {
-		element.classList.add('fill');
-		element.dataset.type = color;
-		setTimeout(() => {
-			element.classList.remove('fill');
-			resolve();
-		}, dropSpeed); // Match the duration of the CSS animation
-	});
-}
+		for (let index = grid.length - 1; index >= 0; index--) {
+			const type = grid[index];
+			if (type === 'null') continue;
 
-// moveDown probably should start at highest index deleted
-// but for now can start at bottom and work through it all
-// moveDown looks for any nulled indexes and shifts the squares colors downward by col
-async function moveDown() {
-	const bottomLeft = squares.length - width;
-	let emptyIndexes = [];
+			const verts = [index];
+			for (let u = index - width; u >= 0 && grid[u] === type; u -= width) verts.push(u);
+			for (let d = index + width; d < grid.length && grid[d] === type; d += width) verts.push(d);
+			if (verts.length >= 3) verts.forEach(id => matched.add(id));
 
-	for (let i = squares.length - 1; i >= bottomLeft; i--) {
-		let current = i;
-
-		while (current >= 0) {
-			const value = squares[current].dataset.type;
-			if (value === "null") {
-				emptyIndexes.push(current);
-			} else if (emptyIndexes.length > 0) {
-				const colorFound = squares[current].dataset.type;
-				const nextUP = emptyIndexes.shift();
-				squares[current].dataset.type = "null";
-				emptyIndexes.push(current);
-
-				// apply fill animation
-				await animateFill(squares[nextUP], colorFound);
-			}
-			current -= width;
+			const rowStart = Math.floor(index / width) * width;
+			const rowEnd = rowStart + width;
+			const horz = [index];
+			for (let l = index - 1; l >= rowStart && grid[l] === type; l--) horz.push(l);
+			for (let r = index + 1; r < rowEnd && grid[r] === type; r++) horz.push(r);
+			if (horz.length >= 3) horz.forEach(id => matched.add(id));
 		}
 
-		// Fill the top row with new pieces if needed
-		while (emptyIndexes.length > 0) {
-			const nextUp = emptyIndexes.shift();
-			const newColor = getRandomColor();
-			await animateFill(squares[nextUp], newColor);
-		}
+		matched.forEach(id => { grid[id] = 'null'; });
+		return matched;
 	}
 
-	findCascadeMatches();
+	anyAvailableMoves() {
+		const { width, grid } = this;
+		const size = grid.length;
 
-	const availIndexes = anyAvailableMoves();
-	if (availIndexes.length < 3) {
-		setTimeout(() => {
-			showNoMovesModal();
-		}, 500);
+		for (let currIndex = 0; currIndex < size; currIndex++) {
+			const type = grid[currIndex];
+			if (type === 'null') continue;
 
-	}
+			const rowStart = Math.floor(currIndex / width) * width;
+			const rowEnd = rowStart + (width - 1);
+			const prevRowStart = rowStart - width;
+			const prevRowEnd = rowEnd - width;
+			const nextRowStart = rowStart + width > size - 1 ? null : rowStart + width;
+			const nextRowEnd = rowEnd + width > size - 1 ? null : rowEnd + width;
 
-
-}
-
-// findCascadeMatches
-// always starting from the bottom up, find the first set of 3
-// findCascadeMatches starts from the bottom right and searches for all matches
-function findCascadeMatches() {
-
-	let matchesFound = false;
-	let vertMatchIDs, horzMatchIDs;
-	const matchesSet = new Set();
-
-	for (let index = squares.length - 1; index >= 0; index--) {
-		const type = squares[index].dataset.type;
-
-		vertMatchIDs = [index];
-		// up
-		let up = index - width;
-		while (up >= 0 && squares[up].dataset.type === type) {
-			vertMatchIDs.push(up);
-			up -= width;
-		}
-		// down
-		let down = index + width;
-		while (down < squares.length && squares[down].dataset.type === type) {
-			vertMatchIDs.push(down);
-			down += width;
-		}
-
-		horzMatchIDs = [index];
-		const leftMoves = index % width; // ie 11 % 8 = 3
-		const leftMostIndex = index - leftMoves; // 11 - 3 = 8
-		const rightMoves = width - leftMoves - 1; // 8 - 3 - 1 = 4
-		const rightMostIndex = index + rightMoves; // 11 + 4 = 15
-
-		// left
-		let left = index - 1;
-		while (left >= leftMostIndex && squares[left].dataset.type === type) {
-			horzMatchIDs.push(left);
-			left--;
-		}
-		// right
-		let right = index + 1;
-		while (right <= rightMostIndex && squares[right].dataset.type === type) {
-			horzMatchIDs.push(right);
-			right++;
-		}
-
-
-		if (horzMatchIDs.length >= 3) {
-			matchesFound = true;
-			horzMatchIDs.forEach(id => {
-				squares[id].dataset.type = "null";
-				matchesSet.add(id);
-			})
-		}
-
-		if (vertMatchIDs.length >= 3) {
-			matchesFound = true;
-			vertMatchIDs.forEach(id => {
-				squares[id].dataset.type = "null";
-				matchesSet.add(id);
-			})
-		}
-
-		vertMatchIDs = null;
-		horzMatchIDs = null;
-
-	}
-	updateScore(matchesSet.size * 10);
-
-	// if it's been flipped to true, do another move down
-	if (matchesFound) {
-		moveDown();
-	}
-
-}
-
-// anyAvailableMoves runs through the board from top to bottom
-// returns true on first match found, returns false if gets to end and no matches found
-function anyAvailableMoves() {
-	// starting at the top
-	for (let currIndex = 0; currIndex < squares.length; currIndex++) {
-		const rowStart = Math.floor(currIndex / width) * width;
-		const rowEnd = rowStart + (width - 1);
-
-		const prevRowStart = rowStart - width;
-		const prevRowEnd = rowEnd - width;
-
-		const nextRowStart = rowStart + width > squares.length - 1 ? null : rowStart + width;
-		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
-
-		const currentSquare = squares[currIndex];
-
-		// two in a rows
-		const rightIndex = currIndex + 1;
-		const rightSquare = squares[rightIndex];
-		// horizontally
-		if (rightIndex <= rowEnd && currentSquare.dataset.type === rightSquare.dataset.type) {
-			// diagonal square upper left
-			const upperLeftIndex = currIndex - width - 1;
-			const upperLeftSquare = squares[upperLeftIndex];
-			if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
-					return [upperLeftIndex, currIndex, rightIndex];
-			}
-			// diag square lower left
-			const lowerLeftIndex = currIndex + width - 1;
-			const lowerLeftSquare = squares[lowerLeftIndex];
-			if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
-					return [lowerLeftIndex, currIndex, rightIndex];
-			}
-			// diag square upper right
-			const upperRightIndex = rightIndex - width + 1;
-			const upperRightSquare = squares[upperRightIndex];
-			if (upperRightIndex <= prevRowEnd && upperRightSquare && upperRightSquare.dataset.type === rightSquare.dataset.type) {
-				// console.log("upperRightIndex");
-				return [currIndex, rightIndex, upperRightIndex];
-			}
-			// diag square lower right
-			const lowerRightIndex = currIndex + 1 + width + 1;
-			const lowerRightSquare = squares[lowerRightIndex];
-			// console.log("next row end ", nextRowEnd)
-			if (lowerRightIndex <= nextRowEnd && lowerRightSquare && lowerRightSquare.dataset.type === rightSquare.dataset.type) {
-				// console.log("lowerRightIndex");
-				return [currIndex, rightIndex, lowerRightIndex];
-			}
-			// far left in line
-			const farLeftIndex = currIndex - 2;
-			const farLeftSquare = squares[farLeftIndex];
-			if (farLeftIndex >= rowStart && farLeftSquare && farLeftSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("farLeftIndex");
-				return [farLeftIndex, currIndex, rightIndex];
-			}
-
-			// far right in line
-			const farRightIndex = currIndex + 3;
-			const farRightSquare = squares[farRightIndex];
-			if (farRightIndex <= rowEnd && farRightSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("farRightIndex");
-				return [currIndex, rightIndex, farRightIndex];
-			}
-		}
-
-
-
-		// two in a row vertically
-		// since starting at top only have see if below matches
-		if (currIndex < squares.length - width) {
-			const lowerIndex = currIndex + width;
-			const lowerSquare = squares[lowerIndex];
-			// console.log("current index, lower square: ", currIndex, lowerIndex);
-			if (lowerSquare.dataset.type === currentSquare.dataset.type) {
-				// upper left
+			// pair to the right
+			const rightIndex = currIndex + 1;
+			if (rightIndex <= rowEnd && grid[rightIndex] === type) {
 				const upperLeftIndex = currIndex - width - 1;
-				const upperLeftSquare = squares[upperLeftIndex];
-				if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
-							return [upperLeftIndex, currIndex, lowerIndex];
-				}
-				// upper right
-				const upperRightIndex = currIndex - width + 1;
-				const upperRightSquare = squares[upperRightIndex];
-				if (upperRightSquare && upperRightIndex <= prevRowEnd && upperRightIndex >= prevRowStart && upperRightSquare.dataset.type === currentSquare.dataset.type) {
-					// console.log("upperRightIndex");
-					return [upperRightIndex, currIndex, lowerIndex];
-				}
-				// lower left
-				const lowerLeftIndex = currIndex + width + width - 1;
-				const lowerLeftSquare = squares[lowerLeftIndex];
-				if (lowerLeftIndex >= nextRowStart + width && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
-					// console.log("lowerLeftIndex");
-					return [currIndex, lowerIndex, lowerLeftIndex];
-				}
-				// lower right
-				const lowerRightIndex = currIndex + width + width + 1;
-				const lowerRightSquare = squares[lowerRightIndex];
-				if (lowerRightIndex <= nextRowEnd + width && lowerRightSquare && lowerRightSquare.dataset.type === lowerSquare.dataset.type) {
-					// console.log("lowerRightIndex");
-					return [currIndex, lowerIndex, lowerRightIndex];
-				}
+				if (upperLeftIndex >= prevRowStart && grid[upperLeftIndex] === type) return [upperLeftIndex, currIndex, rightIndex];
+				const lowerLeftIndex = currIndex + width - 1;
+				if (lowerLeftIndex >= nextRowStart && grid[lowerLeftIndex] === type) return [lowerLeftIndex, currIndex, rightIndex];
+				const upperRightIndex = rightIndex - width + 1;
+				if (upperRightIndex <= prevRowEnd && grid[upperRightIndex] === type) return [currIndex, rightIndex, upperRightIndex];
+				const lowerRightIndex = currIndex + 1 + width + 1;
+				if (lowerRightIndex <= nextRowEnd && grid[lowerRightIndex] === type) return [currIndex, rightIndex, lowerRightIndex];
+				const farLeftIndex = currIndex - 2;
+				if (farLeftIndex >= rowStart && grid[farLeftIndex] === type) return [farLeftIndex, currIndex, rightIndex];
+				const farRightIndex = currIndex + 3;
+				if (farRightIndex <= rowEnd && grid[farRightIndex] === type) return [currIndex, rightIndex, farRightIndex];
+			}
 
-				// far top
-				const farUpperIndex = currIndex - width - width;
-				const farUpperSquare = squares[farUpperIndex];
-				if (farUpperIndex >= 0 && farUpperSquare && farUpperSquare.dataset.type === currentSquare.dataset.type) {
-					// console.log("farUpperIndex");
-					return [farUpperIndex, currIndex, lowerIndex];
+			// pair below
+			if (currIndex < size - width) {
+				const lowerIndex = currIndex + width;
+				if (grid[lowerIndex] === type) {
+					const upperLeftIndex = currIndex - width - 1;
+					if (upperLeftIndex >= prevRowStart && grid[upperLeftIndex] === type) return [upperLeftIndex, currIndex, lowerIndex];
+					const upperRightIndex = currIndex - width + 1;
+					if (upperRightIndex <= prevRowEnd && upperRightIndex >= prevRowStart && grid[upperRightIndex] === type) return [upperRightIndex, currIndex, lowerIndex];
+					const lowerLeftIndex = currIndex + width + width - 1;
+					if (lowerLeftIndex >= nextRowStart + width && grid[lowerLeftIndex] === type) return [currIndex, lowerIndex, lowerLeftIndex];
+					const lowerRightIndex = currIndex + width + width + 1;
+					if (lowerRightIndex <= nextRowEnd + width && grid[lowerRightIndex] === type) return [currIndex, lowerIndex, lowerRightIndex];
+					const farUpperIndex = currIndex - width - width;
+					if (farUpperIndex >= 0 && grid[farUpperIndex] === type) return [farUpperIndex, currIndex, lowerIndex];
+					const farLowerIndex = currIndex + (width * 3);
+					if (farLowerIndex < size && grid[farLowerIndex] === type) return [currIndex, lowerIndex, farLowerIndex];
 				}
+			}
 
-				// far bottom
-				const farLowerIndex = currIndex + (width * 3);
-				const farLowerSquare = squares[farLowerIndex];
-				if (farLowerIndex < squares.length && farLowerSquare && farLowerSquare.dataset.type === currentSquare.dataset.type) {
-					// console.log("farLowerIndex");
-					return [currIndex, lowerIndex, farLowerIndex];
-				}
+			// x_x pattern — horz
+			const endIndex = currIndex + 2;
+			if (endIndex <= rowEnd && grid[endIndex] === type) {
+				const midAboveIndex = currIndex - width + 1;
+				if (midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && grid[midAboveIndex] === type) return [currIndex, midAboveIndex, endIndex];
+				const midBelowIndex = currIndex + width + 1;
+				if (midBelowIndex <= nextRowEnd && midBelowIndex >= nextRowStart && grid[midBelowIndex] === type) return [currIndex, midBelowIndex, endIndex];
+			}
+
+			// x_x pattern — vert
+			const belowIndex = currIndex + width + width;
+			if (belowIndex < size && grid[belowIndex] === type) {
+				const leftMiddleIndex = currIndex + width - 1;
+				if (leftMiddleIndex >= nextRowStart && leftMiddleIndex <= nextRowEnd && grid[leftMiddleIndex] === type) return [currIndex, leftMiddleIndex, belowIndex];
+				const rightMiddleIndex = currIndex + width + 1;
+				if (rightMiddleIndex >= nextRowStart && rightMiddleIndex <= nextRowEnd && grid[rightMiddleIndex] === type) return [currIndex, rightMiddleIndex, belowIndex];
 			}
 		}
 
-		// if x y x, find x in middle above or below — horz checks
-		const endIndex = currIndex + 2;
-		const endSquare = squares[endIndex];
-		if (endIndex <= rowEnd && endSquare && endSquare.dataset.type === currentSquare.dataset.type) {
-			// middle above
-			const midAboveIndex = currIndex - width + 1;
-			const midAboveSquare = squares[midAboveIndex];
-			if (midAboveSquare && midAboveIndex <= prevRowEnd && midAboveIndex >= prevRowStart && midAboveSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("middleAbove");
-				return [currIndex, midAboveIndex, endIndex];
-			}
-			// middle below
-			const midBelowIndex = currIndex + width + 1;
-			const midBelowSquare = squares[midBelowIndex];
-			if (midBelowIndex <= nextRowEnd && midBelowIndex >= nextRowStart && midBelowSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("midBelow")
-				return [currIndex, midBelowIndex, endIndex];
-			}
-		}
-
-		// vert checks
-		const belowIndex = currIndex + width + width;
-		const belowSquare = squares[belowIndex];
-
-		if (belowIndex < squares.length && belowSquare && belowSquare.dataset.type === currentSquare.dataset.type) {
-			// left middle
-			const leftMiddleIndex = currIndex + width - 1;
-			const leftMiddleSquare = squares[leftMiddleIndex];
-			if (leftMiddleIndex >= nextRowStart && leftMiddleIndex <= nextRowEnd && leftMiddleSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("leftMiddle");
-				return [currIndex, leftMiddleIndex, belowIndex];
-			}
-			// right middle
-			const rightMiddleIndex = currIndex + width + 1;
-			const rightMiddleSquare = squares[rightMiddleIndex];
-			if (rightMiddleIndex >= nextRowStart && rightMiddleIndex <= nextRowEnd && rightMiddleSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("rightMiddle")
-				return [currIndex, rightMiddleIndex, belowIndex];
-			}
-		}
-
+		return [];
 	}
-	// if no cases above have matched
-	return [];
 
-}
-
-// attach resetGame function to reset button
-document.getElementById('reset-button').addEventListener('click', resetGame);
-
-function resetGame() {
-	squares = [];
-	currentScore = 0;
-	document.getElementById('current-score').textContent = 0;
-	gameBoard.innerHTML = '';
-	createBoard();
-}
-
-const slider = document.getElementById("myRange");
-slider.oninput = function () {
-	dropSpeed = slider.max - (this.value - slider.min);
-}
-
-function showNoMovesModal() {
-	const modal = document.getElementById('no-moves-modal');
-	modal.style.display = 'block';
-}
-
-function hideNoMovesModal() {
-	const modal = document.getElementById('no-moves-modal');
-	modal.style.display = 'none';
-}
-
-
-
-document.getElementById('how-to-button').addEventListener('click', showRulesModal);
-
-// Function to show the rules modal
-function showRulesModal() {
-	const modal = document.getElementById('how-to-modal');
-	modal.style.display = 'block';
-}
-
-document.getElementById('okBtn').addEventListener('click', hideNoMovesModal);
-document.getElementById('resetBtn').addEventListener('click', () => {
-	hideNoMovesModal();
-	resetGame();
-});
-
-// Function to hide the rules modal
-function hideRulesModal() {
-	const modal = document.getElementById('how-to-modal');
-	modal.style.display = 'none';
-}
-
-// Event listener for the close button
-document.getElementById('close-button').addEventListener('click', hideRulesModal);
-document.getElementById('x-button').addEventListener('click', hideRulesModal);
-// Event listener to close the modal when clicking outside of it
-window.addEventListener('click', function (event) {
-	const modal = document.getElementById('rules-modal');
-	if (event.target === modal) {
-		modal.style.display = 'none';
+	initialize() {
+		for (let i = 0; i < this.width * this.height; i++) {
+			let color;
+			do {
+				color = this.getRandomColor();
+				this.grid[i] = color;
+			} while (this.isThreeInARow(i, color));
+		}
 	}
-});
+}
 
-createBoard();
+class Game {
+	constructor() {
+		this.board = new Board(8, 8, ['1', '2', '3', '4', '5', '6', '7']);
+		this.squares = [];
+		this.currentScore = 0;
+		this.dropSpeed = 200;
+		this.draggedId = null;
+		this.draggedType = null;
+		this.replacedId = null;
+		this.replacedType = null;
+
+		this.gameBoard = document.getElementById('game-board');
+		this.scoreEl = document.getElementById('current-score');
+
+		this.setupUI();
+		this.createBoard();
+	}
+
+	syncTile(index) {
+		this.squares[index].dataset.type = this.board.grid[index];
+	}
+
+	syncAllTiles() {
+		this.board.grid.forEach((color, i) => {
+			this.squares[i].dataset.type = color;
+		});
+	}
+
+	updateScore(points) {
+		this.currentScore += points;
+		this.scoreEl.textContent = this.currentScore;
+	}
+
+	resetDragState() {
+		this.draggedId = null;
+		this.draggedType = null;
+		this.replacedId = null;
+		this.replacedType = null;
+	}
+
+	animateFill(element, color) {
+		return new Promise((resolve) => {
+			element.classList.add('fill');
+			element.dataset.type = color;
+			setTimeout(() => {
+				element.classList.remove('fill');
+				resolve();
+			}, this.dropSpeed);
+		});
+	}
+
+	createBoard() {
+		this.board.initialize();
+		for (let i = 0; i < this.board.width * this.board.height; i++) {
+			const square = document.createElement('div');
+			square.id = i;
+			square.classList.add('tile');
+			square.setAttribute('draggable', true);
+			square.dataset.type = this.board.grid[i];
+
+			square.addEventListener('dragstart', (e) => this.dragStart(e));
+			square.addEventListener('dragenter', (e) => e.preventDefault());
+			square.addEventListener('dragover', (e) => this.dragOver(e));
+			square.addEventListener('drop', (e) => this.dragDrop(e));
+			square.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+			square.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+			square.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+			square.addEventListener('touchcancel', () => this.resetDragState());
+
+			this.gameBoard.appendChild(square);
+			this.squares.push(square);
+		}
+	}
+
+	dragStart(e) {
+		const el = e.currentTarget;
+		this.draggedType = el.dataset.type;
+		this.draggedId = parseInt(el.id);
+	}
+
+	dragOver(e) {
+		if (this.draggedId === null) return;
+		const el = e.currentTarget;
+		this.replacedType = el.dataset.type;
+		this.replacedId = parseInt(el.id);
+
+		if (this.board.isValidMove(this.draggedId, this.replacedId) &&
+			this.board.makesThreeInARow(this.replacedId, this.draggedType)) {
+			e.preventDefault();
+		}
+	}
+
+	dragDrop(e) {
+		if (this.draggedId === null) return;
+		const el = e.currentTarget;
+		this.replacedType = el.dataset.type;
+		this.replacedId = parseInt(el.id);
+
+		if (this.board.isValidMove(this.draggedId, this.replacedId) &&
+			this.board.makesThreeInARow(this.replacedId, this.draggedType)) {
+			this.board.grid[this.draggedId] = this.replacedType;
+			this.board.grid[this.replacedId] = this.draggedType;
+			this.syncTile(this.draggedId);
+			this.syncTile(this.replacedId);
+
+			const horz1 = this.board.removeMatchingHorzTiles(this.replacedId, this.draggedType);
+			const horz2 = this.board.removeMatchingHorzTiles(this.draggedId, this.replacedType);
+			const vert1 = this.board.removeMatchingVertTiles(this.replacedId, this.draggedType);
+			const vert2 = this.board.removeMatchingVertTiles(this.draggedId, this.replacedType);
+			this.syncAllTiles();
+
+			const matched = new Set([...horz1, ...horz2, ...vert1, ...vert2]);
+			this.updateScore(matched.size * 10);
+			this.moveDown();
+		}
+	}
+
+	handleTouchStart(e) {
+		const el = e.currentTarget;
+		this.draggedType = el.dataset.type;
+		this.draggedId = parseInt(el.id);
+	}
+
+	handleTouchMove(e) {
+		e.preventDefault();
+		const touch = e.touches[0];
+		const element = document.elementFromPoint(touch.clientX, touch.clientY);
+		if (element && element.classList.contains('tile')) {
+			this.replacedType = element.dataset.type;
+			this.replacedId = parseInt(element.id);
+		}
+	}
+
+	async handleTouchEnd(e) {
+		if (this.draggedId === null) return;
+
+		if (this.board.isValidMove(this.draggedId, this.replacedId) &&
+			this.board.makesThreeInARow(this.replacedId, this.draggedType)) {
+			this.board.grid[this.draggedId] = this.replacedType;
+			this.syncTile(this.draggedId);
+			await this.animateFill(this.squares[this.replacedId], this.draggedType);
+			this.board.grid[this.replacedId] = this.draggedType;
+
+			const horz1 = this.board.removeMatchingHorzTiles(this.replacedId, this.draggedType);
+			const horz2 = this.board.removeMatchingHorzTiles(this.draggedId, this.replacedType);
+			const vert1 = this.board.removeMatchingVertTiles(this.replacedId, this.draggedType);
+			const vert2 = this.board.removeMatchingVertTiles(this.draggedId, this.replacedType);
+			this.syncAllTiles();
+
+			const matched = new Set([...horz1, ...horz2, ...vert1, ...vert2]);
+			this.updateScore(matched.size * 10);
+			this.moveDown();
+		} else {
+			this.resetDragState();
+		}
+	}
+
+	async moveDown() {
+		const { grid, width } = this.board;
+		const bottomLeft = this.squares.length - width;
+
+		for (let i = this.squares.length - 1; i >= bottomLeft; i--) {
+			let emptyIndexes = [];
+			let current = i;
+
+			while (current >= 0) {
+				if (grid[current] === 'null') {
+					emptyIndexes.push(current);
+				} else if (emptyIndexes.length > 0) {
+					const color = grid[current];
+					const nextUp = emptyIndexes.shift();
+					grid[current] = 'null';
+					emptyIndexes.push(current);
+					await this.animateFill(this.squares[nextUp], color);
+					grid[nextUp] = color;
+				}
+				current -= width;
+			}
+
+			while (emptyIndexes.length > 0) {
+				const nextUp = emptyIndexes.shift();
+				const newColor = this.board.getRandomColor();
+				await this.animateFill(this.squares[nextUp], newColor);
+				grid[nextUp] = newColor;
+			}
+		}
+
+		const matched = this.board.findCascadeMatches();
+		if (matched.size > 0) {
+			this.syncAllTiles();
+			this.updateScore(matched.size * 10);
+			this.moveDown();
+			return;
+		}
+
+		if (this.board.anyAvailableMoves().length < 3) {
+			setTimeout(() => this.showNoMovesModal(), 500);
+		}
+	}
+
+	resetGame() {
+		this.squares = [];
+		this.currentScore = 0;
+		this.scoreEl.textContent = 0;
+		this.gameBoard.innerHTML = '';
+		this.board = new Board(8, 8, ['1', '2', '3', '4', '5', '6', '7']);
+		this.createBoard();
+	}
+
+	showNoMovesModal() { document.getElementById('no-moves-modal').style.display = 'block'; }
+	hideNoMovesModal() { document.getElementById('no-moves-modal').style.display = 'none'; }
+	showRulesModal() { document.getElementById('how-to-modal').style.display = 'block'; }
+	hideRulesModal() { document.getElementById('how-to-modal').style.display = 'none'; }
+
+	setupUI() {
+		document.getElementById('reset-button').addEventListener('click', () => this.resetGame());
+
+		const slider = document.getElementById('myRange');
+		slider.oninput = () => {
+			this.dropSpeed = slider.max - (slider.value - slider.min);
+		};
+
+		document.getElementById('how-to-button').addEventListener('click', () => this.showRulesModal());
+		document.getElementById('close-button').addEventListener('click', () => this.hideRulesModal());
+		document.getElementById('x-button').addEventListener('click', () => this.hideRulesModal());
+		document.getElementById('okBtn').addEventListener('click', () => this.hideNoMovesModal());
+		document.getElementById('resetBtn').addEventListener('click', () => {
+			this.hideNoMovesModal();
+			this.resetGame();
+		});
+
+		window.addEventListener('click', (e) => {
+			const modal = document.getElementById('rules-modal');
+			if (e.target === modal) modal.style.display = 'none';
+		});
+	}
+}
+
+new Game();
