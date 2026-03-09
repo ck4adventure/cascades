@@ -1,5 +1,3 @@
-// 1. create a board with random tiles
-// 2. be able to switch tiles
 const width = 8;
 const height = 8;
 const gameBoard = document.getElementById("game-board");
@@ -11,7 +9,7 @@ let currentScore = 0;
 let dropSpeed = 200;
 function updateScore(points) {
 	currentScore += points;
-	document.getElementById('current-score').innerHTML = currentScore;
+	document.getElementById('current-score').textContent = currentScore;
 }
 
 // board pattern
@@ -29,9 +27,6 @@ function createBoard() {
 		square.id = i;
 		// add to it the tile class
 		square.classList.add('tile');
-		// Set the inner text to the index number
-		// square.innerText = i;
-
 		// allow it to be draggable
 		square.setAttribute('draggable', true);
 		// pick a random color/dataset-type by indexing into the colors array
@@ -48,14 +43,7 @@ function createBoard() {
 		square.addEventListener('dragenter', (e) => e.preventDefault());
 		square.addEventListener('dragover', dragOver);
 
-		// dragend is when the mouse lets go
-		square.addEventListener('dragend', dragEnd);
-		// drop occurs only if a valid target
 		square.addEventListener('drop', dragDrop);
-
-		// debugging to check square type
-		// square.addEventListener('mouseover', showSquareType);
-		// square.addEventListener('mouseout', hideSquareType);
 
 		// Add touch event listeners
 		square.addEventListener('touchstart', handleTouchStart);
@@ -67,21 +55,6 @@ function createBoard() {
 		squares.push(square);
 
 	}
-}
-
-function showSquareType(e) {
-	const squareId = e.target.id;
-	const square = squares[squareId];
-	const tooltip = document.getElementById('tooltip');
-	tooltip.textContent = `Type: ${square.dataset.type}`;
-	tooltip.style.display = 'block';
-	tooltip.style.left = `${e.pageX + 10}px`;
-	tooltip.style.top = `${e.pageY + 10}px`;
-}
-
-function hideSquareType() {
-	const tooltip = document.getElementById('tooltip');
-	tooltip.style.display = 'none';
 }
 
 function getRandomColor() {
@@ -125,35 +98,20 @@ function handleTouchMove(e) {
 	}
 }
 
-// TODO refactor into single function for touchEnd and dragDrop
-// handleTouchEnd is for a successful switch where players finger comes up
 async function handleTouchEnd(e) {
-	// don't have to rerun the entire check in case user drags square around
-
-	// Define valid moves and check for edge cases
-	// valid is only one square in each direction
-	// but it should also be part of a match horz/vertical
 	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
-		// if valid, try the swap
 		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 		await animateFill(squares[squareIdBeingReplaced], colorTypeBeingDragged);
 
-		// everything is allowed to disappear together
 		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
-		const all = [...horz1, ...horz2, ...verts1, ...verts2];
-
-		updateScore(all.length * 10)
-		// all.sort();
-
+		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
+		updateScore(all.size * 10);
 		moveDown();
-
 	} else {
-		// Reset variables if the move is not valid
 		colorTypeBeingDragged = null;
 		squareIdBeingDragged = null;
 		colorTypeBeingReplaced = null;
@@ -220,46 +178,25 @@ function makesThreeInARow(index, colorType) {
 	return false;
 }
 
-// dragEnd is a cleanup function of drag n drop api
-function dragEnd() {
-	// this should fire last apparently, as a cleanup function
-	// I think function for move and clear can trigger here
-}
-
 // drop fires only if valid drop target under mouse on end
 function dragDrop(e) {
-	// rerun the entire check in case user drags square around
 	colorTypeBeingReplaced = this.dataset.type;
 	squareIdBeingReplaced = parseInt(this.id);
 
-	squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-	squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
-
-	// Define valid moves and check for edge cases
-	// valid is only one square in each direction
-	// but it should also be part of a match horz/vertical
 	if (isValidMove(squareIdBeingDragged, squareIdBeingReplaced) && makesThreeInARow(squareIdBeingReplaced, colorTypeBeingDragged)) {
-		// if valid, try the swap
-		// squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
-		// squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
+		squares[squareIdBeingDragged].dataset.type = colorTypeBeingReplaced;
+		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingDragged;
 
-		// everything is allowed to disappear together
 		const horz1 = removeMatchingHorzTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const horz2 = removeMatchingHorzTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 		const verts1 = removeMatchingVertTiles(squareIdBeingReplaced, colorTypeBeingDragged);
 		const verts2 = removeMatchingVertTiles(squareIdBeingDragged, colorTypeBeingReplaced);
 
 		const all = new Set([...horz1, ...horz2, ...verts1, ...verts2]);
-		// all.sort();
-		updateScore(all.size * 10)
+		updateScore(all.size * 10);
 
 		moveDown();
-
-	} else {
-		squares[squareIdBeingDragged].dataset.type = colorTypeBeingDragged;
-		squares[squareIdBeingReplaced].dataset.type = colorTypeBeingReplaced;
 	}
-
 }
 
 function isValidMove(squareIdBeingDragged, squareIdBeingReplaced) {
@@ -380,14 +317,14 @@ async function moveDown() {
 	const bottomLeft = squares.length - width;
 	let emptyIndexes = [];
 
-	for (let i = squares.length - 1, col = 7; i >= bottomLeft; i--, col--) {
+	for (let i = squares.length - 1; i >= bottomLeft; i--) {
 		let current = i;
 
 		while (current >= 0) {
 			const value = squares[current].dataset.type;
 			if (value === "null") {
 				emptyIndexes.push(current);
-			} else if (value !== "null" && emptyIndexes.length > 0) {
+			} else if (emptyIndexes.length > 0) {
 				const colorFound = squares[current].dataset.type;
 				const nextUP = emptyIndexes.shift();
 				squares[current].dataset.type = "null";
@@ -411,7 +348,6 @@ async function moveDown() {
 
 	const availIndexes = anyAvailableMoves();
 	if (availIndexes.length < 3) {
-		console.log("no moves left")
 		setTimeout(() => {
 			showNoMovesModal();
 		}, 500);
@@ -431,9 +367,6 @@ function findCascadeMatches() {
 	const matchesSet = new Set();
 
 	for (let index = squares.length - 1; index >= 0; index--) {
-
-		// const lowest = newIndexes.pop();
-
 		const type = squares[index].dataset.type;
 
 		vertMatchIDs = [index];
@@ -504,7 +437,7 @@ function findCascadeMatches() {
 function anyAvailableMoves() {
 	// starting at the top
 	for (let currIndex = 0; currIndex < squares.length; currIndex++) {
-		const rowStart = Math.floor(currIndex / width) * width; // gre 0
+		const rowStart = Math.floor(currIndex / width) * width;
 		const rowEnd = rowStart + (width - 1);
 
 		const prevRowStart = rowStart - width;
@@ -513,8 +446,6 @@ function anyAvailableMoves() {
 		const nextRowStart = rowStart + width > squares.length - 1 ? null : rowStart + width;
 		const nextRowEnd = rowEnd + width > squares.length - 1 ? null : rowEnd + width;
 
-		// console.log("prev row start/end: ", prevRowStart, prevRowEnd);
-		// console.log("nextRow start/end", nextRowStart, nextRowEnd);
 		const currentSquare = squares[currIndex];
 
 		// two in a rows
@@ -526,15 +457,13 @@ function anyAvailableMoves() {
 			const upperLeftIndex = currIndex - width - 1;
 			const upperLeftSquare = squares[upperLeftIndex];
 			if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("upperLeftIndex");
-				return [upperLeftIndex, currIndex, rightIndex];
+					return [upperLeftIndex, currIndex, rightIndex];
 			}
 			// diag square lower left
 			const lowerLeftIndex = currIndex + width - 1;
 			const lowerLeftSquare = squares[lowerLeftIndex];
 			if (lowerLeftIndex >= nextRowStart && lowerLeftSquare && lowerLeftSquare.dataset.type === currentSquare.dataset.type) {
-				// console.log("lowerLeftIndex");	
-				return [lowerLeftIndex, currIndex, rightIndex];
+					return [lowerLeftIndex, currIndex, rightIndex];
 			}
 			// diag square upper right
 			const upperRightIndex = rightIndex - width + 1;
@@ -554,7 +483,7 @@ function anyAvailableMoves() {
 			// far left in line
 			const farLeftIndex = currIndex - 2;
 			const farLeftSquare = squares[farLeftIndex];
-			if (farLeftIndex >= rowStart && farLeftSquare.dataset.type === currentSquare.dataset.type) {
+			if (farLeftIndex >= rowStart && farLeftSquare && farLeftSquare.dataset.type === currentSquare.dataset.type) {
 				// console.log("farLeftIndex");
 				return [farLeftIndex, currIndex, rightIndex];
 			}
@@ -581,8 +510,7 @@ function anyAvailableMoves() {
 				const upperLeftIndex = currIndex - width - 1;
 				const upperLeftSquare = squares[upperLeftIndex];
 				if (upperLeftIndex >= prevRowStart && upperLeftSquare && upperLeftSquare.dataset.type === currentSquare.dataset.type) {
-					// console.log("upperLeftIndex");
-					return [upperLeftIndex, currIndex, lowerIndex];
+							return [upperLeftIndex, currIndex, lowerIndex];
 				}
 				// upper right
 				const upperRightIndex = currIndex - width + 1;
@@ -624,10 +552,7 @@ function anyAvailableMoves() {
 			}
 		}
 
-		// 
-		// if x y x, then find x in middle above or below
-
-		// horz checks
+		// if x y x, find x in middle above or below — horz checks
 		const endIndex = currIndex + 2;
 		const endSquare = squares[endIndex];
 		if (endIndex <= rowEnd && endSquare && endSquare.dataset.type === currentSquare.dataset.type) {
@@ -678,25 +603,16 @@ function anyAvailableMoves() {
 document.getElementById('reset-button').addEventListener('click', resetGame);
 
 function resetGame() {
-	squares = []; // take out color data
+	squares = [];
 	currentScore = 0;
-	updateScore(0);
-	gameBoard.innerHTML = ''; // Clear the board display
+	document.getElementById('current-score').textContent = 0;
+	gameBoard.innerHTML = '';
 	createBoard();
 }
 
-var slider = document.getElementById("myRange");
-// var output = document.getElementById("demo");
-// output.innerHTML = slider.value; // Display the default slider value
-
-// Update the current slider value (each time you drag the slider handle)
+const slider = document.getElementById("myRange");
 slider.oninput = function () {
-	// output.innerHTML = this.value;
-	// change animate value
-	const reversedValue = slider.max - (this.value - slider.min);
-
-	dropSpeed = reversedValue;
-
+	dropSpeed = slider.max - (this.value - slider.min);
 }
 
 function showNoMovesModal() {
